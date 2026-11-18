@@ -98,7 +98,7 @@ html{overflow-anchor:none}
 </style>
 </head>
 <body>
-<h1>Conseil de mise · Paroli d'Alembert à paliers v2 + v2.1 + v2.2</h1>
+<h1>Conseil de mise · Paroli d'Alembert à paliers v2 + v2.1 + v2.2 + v3 + B</h1>
 <div id="calc" style="display:none" role="status">calcul…</div>
 <div id="conseil" class="carte conseil"></div>
 <div id="bot" class="carte bot"><h2>Conseil du bot</h2><div class="botneg"><label for="botNeg">Mon négatif (déjà perdu) :</label> <input id="botNeg" type="number" inputmode="numeric" min="0" step="1" value="0" autocomplete="off" enterkeyhint="done"> €</div><div id="botNegNote"></div><div id="botCorps"></div></div>
@@ -125,8 +125,8 @@ html{overflow-anchor:none}
 <label id="lMode" class="lab">Chance simple (toute la session)
 <select id="mode" autocomplete="off"><option value="Rouge">Rouge</option><option value="Noir">Noir</option><option value="Pair">Pair</option><option value="Impair">Impair</option><option value="Manque">Manque (1–18)</option><option value="Passe">Passe (19–36)</option></select></label>
 <label id="lMeth" class="lab">Méthode (chances simples, toute la session)
-<select id="meth" autocomplete="off"><option value="2.1">Méthode v2.1 (paliers 10 / 15 / 30 €)</option><option value="2.2">Méthode v2.2 (ouverture 10 €, paliers 7 / 15 / 30 €)</option></select></label>
-<div class="mini" id="noteMeth" style="margin-top:4px">v2.1 par défaut. v2.2 (fiche du 18/11) : Palier 1 amorti à 7 €, verrou positif, Paroli sécurisé 20 → 30 → 50 € en Palier 2. L'espérance reste négative avec les deux (1,35 % avec La Partage).</div>
+<select id="meth" autocomplete="off"><option value="2.1">Méthode v2.1 (paliers 10 / 15 / 30 €)</option><option value="2.2">Méthode v2.2 (ouverture 10 €, paliers 7 / 15 / 30 €)</option><option value="3">Méthode v3 complète (Paroli 2 coups, max 60 €)</option><option value="B">Version B (attente / montée, max 60 €)</option></select></label>
+<div class="mini" id="noteMeth" style="margin-top:4px">v2.1 par défaut. v2.2 (fiche du 18/11) : Palier 1 amorti à 7 €, verrou positif, Paroli sécurisé 20 → 30 → 50 € en Palier 2. v3 complète : toutes les idées de la v2.2 (paliers, +5, réserve, verrou, filet, reset) avec un Paroli à 2 coups tout le long et jamais plus de 60 € (à +50 € / 300 €). Version B : Paroli 2 coups doublé, mise d&#39;attente 5 € après 3 pertes d&#39;affilée, +10 € après 2 gains d&#39;affilée, jamais plus de 60 €. Chances simples seulement. L&#39;avantage reste au casino avec toutes (1,35 % de chaque mise avec La Partage).</div>
 <label id="lCible" class="lab" style="display:none"><span id="tCible">Ta cible</span>
 <select id="cible" autocomplete="off"></select></label>
 <label id="lNb" class="lab" style="display:none"><span id="tNb">Nombre</span>
@@ -145,8 +145,9 @@ html{overflow-anchor:none}
 <div class="mini" id="pErr" style="color:#ffb3b3"></div></div></div>
 <div class="carte fiche" id="fiche"></div>
 <div class="carte hist"><h2>Historique des coups</h2><div id="hist"></div></div>
-<div class="carte"><details><summary>Les règles appliquées (fiches v2 + v2.1 + v2.2)</summary>
+<div class="carte"><details><summary>Les règles appliquées (fiches v2 + v2.1 + v2.2, v3 complète, version B)</summary>
 <div id="regle22" style="font-size:12.5px"></div>
+<div id="regle3" style="font-size:12.5px"></div>
 <div id="regleEch" style="font-size:12.5px"></div>
 <div id="regleMulti" style="font-size:12.5px"></div>
 <table class="tab"><tr><th>Situation</th><th>Règle</th><th>Source</th></tr>
@@ -167,7 +168,7 @@ html{overflow-anchor:none}
 const ROUGES = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
 const OBJ_DEF = 10, CAVE_DEF = 300;
 let METH = "2.1";
-const methDe = (v) => v === "2.2" ? "2.2" : "2.1";
+const methDe = (v) => v === "2.2" || v === "3" || v === "B" ? v : "2.1";
 const fe = (v) => String(v).replace(".", ",").replace("-", "−");
 const fs2 = (v) => fe(Math.round(v * 100) / 100);
 const estRouge = (x) => ROUGES.indexOf(x) >= 0;
@@ -213,8 +214,8 @@ function nouvelle(chance, obj = OBJ_DEF, cave = CAVE_DEF, dep = "normal") {
   const s = brut(chance, obj, cave, uniteDep(uniteDe(obj, cave), dep));
   if (depDe(dep) !== "normal")
     s.dep = depDe(dep);
-  if (METH === "2.2")
-    s.v = "2.2";
+  if (METH !== "2.1")
+    s.v = METH;
   return s;
 }
 function norm(s) {
@@ -240,6 +241,8 @@ function gagne(ch, x) {
 function conseil(s0) {
   if (s0.v === "2.2")
     return conseil22(s0);
+  if (s0.v === "3" || s0.v === "B")
+    return conseil3(s0);
   const s = norm(s0);
   if (s.fin)
     return { mise: 0, chance: s.chance, etat: s.fin, note: "" };
@@ -267,6 +270,8 @@ function conseil(s0) {
 function jouer(s0, x) {
   if (s0.v === "2.2")
     return jouer22(s0, x);
+  if (s0.v === "3" || s0.v === "B")
+    return jouer3(s0, x);
   const s = norm(s0);
   const c = conseil(s), q = prm(s), T200 = fs2(q.T200);
   if (s.fin || c.mise < 1) {
@@ -392,7 +397,7 @@ function jouer(s0, x) {
   return { etat: s, ligne };
 }
 const PW = 18 / 37, PL = 18 / 37, PZ = 1 / 37;
-const cle = (s) => [s.bilan, s.plus5 ? 1 : 0, s.etape, s.paroliMise, s.perdue, s.zone, s.mise1, s.fin].join("|");
+const cle = (s) => [s.bilan, s.plus5 ? 1 : 0, s.etape, s.paroliMise, s.perdue, s.zone, s.mise1, s.fin].join("|") + (s.v === "B" ? "|" + (s.pl || 0) + "|" + (s.sg || 0) : "");
 function construireDP(obj, cave, dep = "normal") {
   const t0 = Date.now();
   const idx = {};
@@ -722,7 +727,7 @@ function jouer22(s0, x) {
   const ligne = { n: s.coups, num: x, mise: b, chance: ch, res, gain: g, bilan: s.bilan, reste: s.cave + s.bilan, etatAvant: c.etat, action, regles: regles.concat(["Couleur : fiche v2.2 §1 (p.1) — " + s.chanceFixe + " fixe toute la session, une seule chance simple"]), suivante: s.fin ? s.fin : conseil22(s).mise };
   return { etat: s, ligne };
 }
-const nomMeth = (v) => methDe(v) === "2.2" ? "Méthode v2.2" : "Méthode v2.1";
+const nomMeth = (v) => methDe(v) === "2.2" ? "Méthode v2.2" : estV3(v) ? nomV3(v) : "Méthode v2.1";
 function palierTxt22(s) {
   const q = prm22(s), p = palier22(s.bilan, s.cave);
   return nomP22(p) + (s.plus5 && p > 0 && !s.paroliMise && !s.etape ? " +" + q.D : "");
@@ -753,6 +758,221 @@ function regles22() {
     ["Mise à l'échelle", "Pour un autre objectif ou une autre cave : mêmes règles que la v2.1 (mises × u/10, seuils × cave/300, départ plus petit / moyen). À 10 € / 300 €, ce sont exactement les valeurs de la fiche.", "adaptation déclarée"]
   ];
 }
+const ech3 = (x, u) => Math.max(1, Math.floor((2 * x * u + 13) / 26));
+const estV3 = (v) => v === "3" || v === "B";
+const estN = (v) => v === "2.2" || estV3(v);
+function prm3(s) {
+  const c = s.cave, k = (x) => ech3(x, s.u), T = { T45: 45 * c / 300, T150: 120 * c / 300, T200: 200 * c / 300 };
+  if (s.v === "B")
+    return { O: k(25), B1: k(5), B2: k(30), B3: k(50), D: k(5), K2: 1 / 0, K3: 1 / 0, V: k(16), Cap: k(60), W: k(5), M: k(10), attK: 3, ...T };
+  return { O: k(30), B1: k(20), B2: k(35), B3: k(45), D: k(5), K2: k(13), K3: k(20), V: k(16), Cap: k(60), W: 0, M: 0, attK: 0, ...T };
+}
+const palier3 = (b, q) => b >= 0 ? 0 : b > -q.T45 ? 1 : b > -q.T150 ? 2 : 3;
+function base3(p, q) {
+  return p === 0 ? q.O : p === 1 ? q.B1 : p === 2 ? q.B2 : q.B3;
+}
+const nomV3 = (v) => v === "B" ? "Version B" : "Méthode v3 complète";
+const courtV3 = (v) => v === "B" ? "version B" : "v3 complète";
+function conseil3(s0) {
+  const s = norm(s0);
+  if (s.fin)
+    return { mise: 0, chance: s.chance, etat: s.fin, note: "" };
+  const q = prm3(s), p = palier3(s.bilan, q);
+  let prevue;
+  let etat;
+  let note = "";
+  if (s.paroliMise > 0) {
+    prevue = s.paroliMise;
+    etat = s.zone === "FILET" ? "Filet 2/2 (2e et dernier coup du Paroli, bilan de départ < −" + fs2(q.T200) + " €)" : "Paroli 2/2 " + (p >= 2 && s.v !== "B" ? "sécurisé " : "") + "(" + (p === 0 ? "ouverture" : "P" + Math.max(p, 1)) + ")" + (s.zone === "V" ? " — verrou positif " + q.V + " €" : "");
+  } else if (q.attK && (s.pl || 0) >= q.attK) {
+    prevue = q.W;
+    etat = "Attente : " + q.attK + " pertes d'affilée → mise d'attente " + q.W + " € jusqu'au prochain gain";
+  } else {
+    prevue = base3(p, q) + (s.plus5 && p > 0 ? q.D : 0);
+    etat = p === 0 ? "Ouverture" : "P" + p + (s.plus5 ? "+" + q.D : " base (sans +" + q.D + " €)");
+    if (s.perdue && prevue > s.perdue + q.D) {
+      prevue = s.perdue + q.D;
+      etat += " (plaf. +" + q.D + " € sur la mise perdue)";
+    }
+  }
+  if (q.M && !s.paroliMise && (s.sg || 0) >= 2) {
+    prevue += q.M;
+    etat += " · montée +" + q.M + " € (2 gains d'affilée)";
+  }
+  const manque = Math.ceil(s.obj - s.bilan - 0.000000001), reste = Math.floor(s.cave + s.bilan + 0.000000001);
+  const mise = Math.min(prevue, manque, reste, q.Cap);
+  if (mise < prevue)
+    note = mise === manque ? "plafond : il manque " + manque + " € pour +" + s.obj + " €" : mise === reste ? "plafond : il reste " + reste + " € dans la cave" : "plafond de mise : jamais plus de " + q.Cap + " €";
+  return { mise, chance: s.chance, etat, note };
+}
+function jouer3(s0, x) {
+  const s = norm(s0);
+  const c = conseil3(s), q = prm3(s), nm = courtV3(s.v);
+  if (s.fin || c.mise < 1) {
+    s.fin = s.fin || "CAVE_VIDE";
+    return { etat: s, ligne: null };
+  }
+  const b = c.mise, ch = s.chance;
+  let regles = [];
+  let res;
+  let g;
+  let action = "";
+  if (x === 0) {
+    res = "zéro";
+    g = -b / 2;
+    regles.push("Zéro → La Partage te rend " + fe(b / 2) + " € (perte nette = demi-mise), puis règle d'une perte (" + nm + ")");
+  } else if (gagne(ch, x)) {
+    res = "gagné";
+    g = b;
+  } else {
+    res = "perdu";
+    g = -b;
+  }
+  const avant = s.bilan;
+  s.bilan = avant + g;
+  s.coups++;
+  s.reserve = 0;
+  if (q.attK)
+    s.pl = res === "gagné" ? 0 : Math.min((s.pl || 0) + 1, q.attK);
+  if (q.M)
+    s.sg = res === "gagné" ? Math.min((s.sg || 0) + 1, 2) : 0;
+  if (res === "gagné") {
+    s.serie = s.serie > 0 ? s.serie + 1 : 1;
+    s.perdue = 0;
+    if (s.etape === 0) {
+      s.mise1 = b;
+      s.zone = avant < -q.T200 ? "FILET" : "";
+    } else if (!s.mise1)
+      s.mise1 = b;
+    const n = s.etape + 1, p = palier3(s.bilan, q);
+    if (s.zone === "FILET") {
+      if (n >= 2) {
+        s.etape = 0;
+        s.paroliMise = 0;
+        action = "Filet : 2e gain, encaisse et reprends au palier du nouveau bilan";
+        regles.push(nm + " · filet sous −" + fs2(q.T200) + " € : Paroli 2 coups, au 2e gain tu encaisses et reprends au palier du nouveau bilan (le +" + q.D + " € reste)");
+      } else {
+        s.etape = 1;
+        s.paroliMise = Math.min(b + q.K3, 2 * b);
+        s.reserve = 2 * b - Math.min(s.paroliMise, q.Cap);
+        s.reserveTotal += s.reserve;
+        action = "Filet (Paroli 2 coups)" + (s.reserve ? " : " + s.reserve + " € en réserve" : "");
+        regles.push(nm + " · filet sous −" + fs2(q.T200) + " € : 1er gain, 2e coup à " + Math.min(s.paroliMise, q.Cap) + " €" + (s.reserve ? ", " + s.reserve + " € en réserve" : ""));
+      }
+    } else if (n >= 2) {
+      s.etape = 0;
+      s.zone = "";
+      s.paroliMise = 0;
+      s.mise1 = 0;
+      s.plus5 = false;
+      action = "2e gain : encaisse & retire le +" + q.D + " € → nouveau Paroli possible dès le prochain gain";
+      regles.push(nm + " · Paroli 2 coups tout le long : au 2e gain tu encaisses tout, retires le +" + q.D + " € et repars à la base du palier (" + base3(p, q) + " €)");
+    } else if (p <= 1) {
+      let nx = 2 * b;
+      s.zone = "";
+      if (n === 1 && s.bilan < 0 && s.bilan >= -q.V && nx > q.V) {
+        nx = q.V;
+        s.zone = "V";
+        regles.push(nm + " · verrou positif : le 1er gain remonte le bilan à " + fe(s.bilan) + " € (entre −1 et −" + q.V + " €) → 2e coup plafonné à " + q.V + " €");
+      }
+      s.etape = n;
+      s.paroliMise = nx;
+      s.reserve = 2 * b - Math.min(nx, q.Cap);
+      s.reserveTotal += s.reserve;
+      action = "Paroli 2/2 → " + Math.min(nx, q.Cap) + " €" + (s.zone === "V" ? " (verrou positif " + q.V + " €)" : s.reserve ? " (" + s.reserve + " € gardés, plafond " + q.Cap + " €)" : " : laisse mise + gain");
+      regles.push(nm + " · Paroli intégral 2 coups (" + b + " → " + Math.min(nx, q.Cap) + " €)");
+    } else {
+      const k = p === 2 ? q.K2 : q.K3;
+      const nx = Math.min(n === 1 ? b + k : b + s.mise1, 2 * b);
+      s.zone = "";
+      s.etape = n;
+      s.paroliMise = nx;
+      s.reserve = 2 * b - Math.min(nx, q.Cap);
+      s.reserveTotal += s.reserve;
+      action = "Paroli 2/2 " + (s.v === "B" ? "" : "sécu ") + "P" + p + (s.reserve ? " (" + s.reserve + " € gardés)" : "") + " → " + Math.min(nx, q.Cap) + " €";
+      regles.push(nm + (s.v === "B" ? " · Paroli intégral 2 coups (" + b + " → " + Math.min(nx, q.Cap) + " €, jamais plus de " + q.Cap + " €)" : " · Paroli sécurisé P" + p + " : 1er gain, " + s.reserve + " € en réserve, 2e coup à " + Math.min(nx, q.Cap) + " €"));
+    }
+  } else {
+    s.serie = s.serie < 0 ? s.serie - 1 : -1;
+    s.etape = 0;
+    s.plus5 = true;
+    s.perdue = b;
+    action = res === "zéro" ? "La Partage : demi-mise rendue, traité comme une perte" : "Perte : palier + " + q.D + " €";
+    regles.push(nm + " · après une perte : mise = palier + " + q.D + " € (" + (q.B1 + q.D) + " / " + (q.B2 + q.D) + " / " + (q.B3 + q.D) + " €), jamais plus de +" + q.D + " € au-dessus de la mise perdue (" + b + " €)");
+    if (q.attK && (s.pl || 0) >= q.attK)
+      regles.push(nm + " · attente : " + q.attK + " pertes d'affilée → mise d'attente " + q.W + " € jusqu'au prochain gain");
+  }
+  if (s.etape === 0) {
+    s.zone = "";
+    s.mise1 = 0;
+    s.paroliMise = 0;
+  }
+  if (s.bilan >= s.obj) {
+    s.fin = "OBJECTIF";
+    action = "STOP : +" + s.obj + " € atteint, encaisse et arrête";
+    regles = [nm + " · STOP à +" + s.obj + " € — encaisse et arrête la session"];
+  } else if (s.bilan >= 0) {
+    s.etape = 0;
+    s.plus5 = false;
+    s.perdue = 0;
+    s.zone = "";
+    s.mise1 = 0;
+    s.paroliMise = 0;
+    regles.push(nm + " · reset : bilan revenu à 0 € ou plus → ouverture (" + q.O + " €), sans +" + q.D + " €");
+    action = res === "gagné" ? "Reset (bilan ≥ 0) → ouverture " + q.O + " €" : action + " · bilan ≥ 0 : reset ouverture";
+  }
+  s.chance = s.chanceFixe;
+  if (!s.fin) {
+    const nn = conseil3(s);
+    if (nn.mise < 1) {
+      s.fin = "CAVE_VIDE";
+      regles.push(nm + " · cave vide (stop-loss −" + s.cave + " €) — fin de session, ne recharge pas");
+    } else if (nn.note)
+      regles.push(nm + " · " + nn.note);
+  }
+  const ligne = { n: s.coups, num: x, mise: b, chance: ch, res, gain: g, bilan: s.bilan, reste: s.cave + s.bilan, etatAvant: c.etat, action, regles: regles.concat(["Couleur : " + s.chanceFixe + " fixe toute la session, une seule chance simple"]), suivante: s.fin ? s.fin : conseil3(s).mise };
+  return { etat: s, ligne };
+}
+function palierTxt3(s) {
+  const q = prm3(s), p = palier3(s.bilan, q);
+  return (p === 0 ? "Ouverture" : "P" + p) + (s.plus5 && p > 0 && !s.paroliMise && !s.etape ? " +" + q.D : "") + (q.attK && (s.pl || 0) >= q.attK && !s.paroliMise ? " · attente" : "");
+}
+function paroliTxt3(s) {
+  return s.paroliMise ? s.zone === "FILET" ? "filet 2/2" : "coup 2/2" : "—";
+}
+function rappel3(v, P, E) {
+  return nomV3(v) + " (étude du 18/11) : elle change seulement le montant des mises. L'avantage reste au casino : 1,35 % de chaque mise sur chances simples avec La Partage" + (P !== null && E !== null ? " — calcul exact pour tes réglages : réussite " + (100 * P).toFixed(2).replace(".", ",") + " %, résultat moyen " + (E < 0 ? "−" : "+") + Math.abs(Math.round(E * 100) / 100).toFixed(2).replace(".", ",") + " € par session" : "") + ". Aucune méthode ne bat le zéro.";
+}
+function echelle3Txt(s) {
+  const q = prm3(s);
+  return (s.v === "B" ? "version B" : "v3 complète") + " : ouverture " + q.O + " € · paliers P1 / P2 / P3 " + q.B1 + " / " + q.B2 + " / " + q.B3 + " € · après une perte +" + q.D + " € (jamais plus de +" + q.D + " € au-dessus de la mise perdue) · Paroli 2 coups " + (s.v === "B" ? "intégral partout" : "intégral en ouverture / P1 (verrou " + q.V + " €), sécurisé en P2 (+" + q.K2 + " €) et P3 (+" + q.K3 + " €)") + " · jamais plus de " + q.Cap + " €" + (s.v === "B" ? " · attente " + q.W + " € après " + q.attK + " pertes d'affilée · montée +" + q.M + " € après 2 gains d'affilée" : "") + " · seuils de bilan −" + fs2(q.T45) + " / −" + fs2(q.T150) + " / −" + fs2(q.T200) + " € (filet)";
+}
+function regles3(v) {
+  const B = v === "B", src = B ? "version B" : "v3 complète";
+  return [
+    ["Où miser", "Une seule chance simple, la même toute la session (jamais douzaine, carré ni plein).", src],
+    ["Palier", "Ouverture (bilan ≥ 0) : " + (B ? "25" : "30") + " € · bilan jusqu'à −45 € : P1 = " + (B ? "5" : "20") + " € · de −45 à −120 € : P2 = " + (B ? "30" : "35") + " € · −120 € ou moins : P3 = " + (B ? "50" : "45") + " € (montants à +50 € / 300 €).", src],
+    ["Après une perte", "Le Paroli s'arrête. Palier + 5 €, jamais plus de 5 € au-dessus de la mise perdue.", src],
+    ["Zéro", "La Partage rend la moitié de la mise, puis règle d'une perte.", src],
+    ["Après un gain", B ? "Paroli intégral sur 2 coups à tous les paliers (tu doubles une fois), puis tu encaisses." : "Paroli 2 coups à tous les paliers : intégral en ouverture / P1 (verrou positif 16 €), sécurisé en P2 (2e mise = mise + 13 €) et P3 (mise + 20 €), le reste du gain en réserve.", src],
+    ["2e gain", "Encaisse tout et retire le +5 € ; un nouveau Paroli peut repartir dès le gain suivant (jamais de 3e coup).", src],
+    ["Filet (bilan < −200 €)", "Paroli limité à 2 coups" + (B ? "" : " (2e mise = mise + 20 €)") + ", encaisse au 2e gain et reprends au palier du nouveau bilan (le +5 € reste).", src]
+  ].concat(B ? [
+    ["Série perdante", "Après 3 pertes d'affilée : mise d'attente 5 € jusqu'au prochain gain.", src],
+    ["Série gagnante", "Après 2 gains d'affilée : le Paroli suivant démarre 10 € plus haut.", src]
+  ] : []).concat([
+    ["Toujours", "Jamais plus de 60 €, jamais plus que ce qui manque pour l'objectif ni que ce qui reste dans la cave. Cave vide : fin, ne recharge pas.", src],
+    ["Mise à l'échelle", "Autre objectif ou autre cave : montants × u / 13 (arrondis), seuils × cave / 300, comme la v2.1 / v2.2.", "adaptation déclarée"],
+    ["Honnêteté", "Calcul exact à +50 € / 300 € : " + (B ? "83,87 % / −6,38 €" : "84,12 % / −5,54 €") + " par session (v2.2 : 83,68 % / −6,99 €). L'avantage reste au casino.", "étude v2.3 du 18/11"]
+  ]);
+}
+const prmN = (s) => estV3(s.v) ? prm3(s) : prm22(s);
+const palierTxtN = (s) => estV3(s.v) ? palierTxt3(s) : palierTxt22(s);
+const paroliTxtN = (s) => estV3(s.v) ? paroliTxt3(s) : paroliTxt22(s);
+const rappelN = (v, P, E) => estV3(v) ? rappel3(v, P, E) : rappel22(P, E);
+const srcN = (v, ref) => estV3(v) ? courtV3(v) : "v2.2 " + ref;
+const labN = (v) => estV3(v) ? nomV3(v) : "Méthode v2.2";
+const courtN = (v) => estV3(v) ? courtV3(v) : "v2.2";
 const NIVEAUX = [
   { niveau: "prudent", min: 0.95, sens: "réussite ≥ 95 % : au plus 1 cave vide sur 20 sessions" },
   { niveau: "équilibré", min: 0.9, sens: "réussite de 90 à 95 % : de 1 sur 20 à 1 sur 10" },
@@ -766,7 +986,7 @@ const niveauDe = (P) => {
   return "trop risqué";
 };
 const CACHE = {};
-const cleDp = (o, c, dep) => o + "/" + c + (depDe(dep) !== "normal" ? "/" + depDe(dep) : "") + (METH === "2.2" ? "/v22" : "");
+const cleDp = (o, c, dep) => o + "/" + c + (depDe(dep) !== "normal" ? "/" + depDe(dep) : "") + (METH === "2.2" ? "/v22" : METH === "3" ? "/v3" : METH === "B" ? "/vB" : "");
 const dpCache = (o, c, dep = "normal") => {
   const k = cleDp(o, c, dep);
   if (!CACHE[k])
@@ -1777,7 +1997,7 @@ function botNegatif(o, c, j, neg) {
 }
 const METH_NEG = {};
 const METH_NEG_ORDRE = [];
-const methNegCle = (o, c, j, dep) => botCle(o, c, j, 0) + "/" + (j ? depDe(j.dep) : depDe(dep) + (METH === "2.2" ? "/v22" : ""));
+const methNegCle = (o, c, j, dep) => botCle(o, c, j, 0) + "/" + (j ? depDe(j.dep) : depDe(dep) + (METH === "2.2" ? "/v22" : METH === "3" ? "/v3" : METH === "B" ? "/vB" : ""));
 const methNegPret = (o, c, j, dep) => !!METH_NEG[methNegCle(o, c, j, dep)];
 function methNegDp(o, c, j, dep) {
   const k = methNegCle(o, c, j, dep);
@@ -1841,18 +2061,18 @@ function saisir(x) { var s = etat(); if (s.fin) return; if (estM(s) && !s.coups 
 function annuler() { if (pile.length > 1) { pile.pop(); lignes.pop(); sauver(); rendre(); if (!lignes.length) chargerBrouillon(etat()); } }
 function rendre() { var s = etat(); if (estM(s)) return dpDeM(s, function (dp) { rendreAvecM(s, dp); }); dpDe(s.obj, s.cave, s.dep, function (dp) { rendreAvec(s, dp); }); }
 function rendreAvec(s, dp) {
-  var c = conseil(s), q = prm(s), el = $('conseil'), d = lignes[lignes.length - 1], i = dp.idx[cle(s)], T200 = fs2(q.T200), v22 = s.v === '2.2', q2 = prm22(s), src5 = v22 ? 'v2.2 p.2 §5' : 'v2 p.1 §5 · v2.1 p.1 §5';
+  var c = conseil(s), q = prm(s), el = $('conseil'), d = lignes[lignes.length - 1], i = dp.idx[cle(s)], T200 = fs2(q.T200), v22 = estN(s.v), q2 = prmN(s), src5 = v22 ? srcN(s.v, 'p.2 §5') : 'v2 p.1 §5 · v2.1 p.1 §5';
   el.className = 'carte conseil' + (s.fin === 'OBJECTIF' ? ' stop' : (s.fin ? ' out' : ''));
-  if (s.fin === 'OBJECTIF') el.innerHTML = '<div class="mise">STOP ✔</div><div class="etat" style="font-size:18px;font-weight:700">Objectif +' + s.obj + ' € atteint — bilan ' + eur(s.bilan) + '</div><div class="etat">Encaisse et arrête la session (' + src5 + ').</div>' + (v22 ? '<div class="etat">' + esc(rappel22(dp.P[0], dp.E[0])) + '</div>' : '');
-  else if (s.fin) el.innerHTML = '<div class="mise">FIN</div><div class="etat" style="font-size:18px;font-weight:700">Cave vide — stop-loss −' + s.cave + ' €</div><div class="etat">Fin de session, ne recharge pas (' + src5 + ').</div>' + (v22 ? '<div class="etat">' + esc(rappel22(dp.P[0], dp.E[0])) + '</div>' : '');
+  if (s.fin === 'OBJECTIF') el.innerHTML = '<div class="mise">STOP ✔</div><div class="etat" style="font-size:18px;font-weight:700">Objectif +' + s.obj + ' € atteint — bilan ' + eur(s.bilan) + '</div><div class="etat">Encaisse et arrête la session (' + src5 + ').</div>' + (v22 ? '<div class="etat">' + esc(rappelN(s.v, dp.P[0], dp.E[0])) + '</div>' : '');
+  else if (s.fin) el.innerHTML = '<div class="mise">FIN</div><div class="etat" style="font-size:18px;font-weight:700">Cave vide — stop-loss −' + s.cave + ' €</div><div class="etat">Fin de session, ne recharge pas (' + src5 + ').</div>' + (v22 ? '<div class="etat">' + esc(rappelN(s.v, dp.P[0], dp.E[0])) + '</div>' : '');
   else {
     var cc = c.chance === 'Rouge' ? 'ch-Rouge' : (c.chance === 'Noir' ? 'ch-Noir' : 'ch-autre'), al = '';
-    if (s.etape === 0 && sousFilet(s.bilan, s.cave)) al += '<div class="alerte a-filet">⚠ <b>Filet −' + T200 + ' € actif</b> (' + (v22 ? 'v2.2 p.2 §4' : 'v2.1 p.1 §4') + ') : si tu gagnes, le Paroli sera limité à 2 coups, puis tu encaisses et reprends au palier du nouveau bilan.</div>';
+    if (s.etape === 0 && sousFilet(s.bilan, s.cave)) al += '<div class="alerte a-filet">⚠ <b>Filet −' + T200 + ' € actif</b> (' + (v22 ? srcN(s.v, 'p.2 §4') : 'v2.1 p.1 §4') + ') : si tu gagnes, le Paroli sera limité à 2 coups, puis tu encaisses et reprends au palier du nouveau bilan.</div>';
     if (s.zone === 'FILET') al += '<div class="alerte a-filet">⚠ <b>Filet −' + T200 + ' €</b> : 2e et dernier coup du Paroli. ' + s.reserve + ' € mis en réserve. S\'il gagne, tu encaisses tout le gain.</div>';
     if (s.zone === 'P3') al += '<div class="alerte a-p3"><b>Paroli sécurisé Palier 3</b> (v2.1 p.1 §4) : ' + (s.etape === 1 ? 'retire ' + s.reserve + ' € du tapis (réserve), ne laisse que ' + c.mise + ' €.' : '3e coup : ' + c.mise + ' €. Au 3e gain, tu encaisses tout.') + '</div>';
-    if (v22 && s.paroliMise && s.reserve && s.zone !== 'FILET') al += '<div class="alerte a-p3"><b>Paroli sécurisé</b> (v2.2 p.2 §4) : retire ' + s.reserve + ' € du tapis (réserve), ne laisse que ' + c.mise + ' €.</div>';
-    if (v22) al += '<div class="note" style="opacity:.9">' + esc(rappel22(dp.P[0], dp.E[0])) + '</div>';
-    el.innerHTML = '<div class="lab">' + (v22 ? 'Méthode v2.2 · ' : '') + (s.coups ? 'Coup n° ' + (s.coups + 1) : 'Premier coup') + ' · objectif +' + s.obj + ' € · cave ' + s.cave + ' €</div><div class="mise">Mise : ' + c.mise + ' € <span style="font-size:24px">sur</span> <span class="ch ' + cc + '">' + c.chance + '</span></div><div class="etat">' + esc(c.etat) + '</div>' + (c.note ? '<div class="note">' + esc(c.note) + (v22 ? ' (v2.2 p.2 §5)' : ' (v2.1 p.1 §5)') + '</div>' : '') + al;
+    if (v22 && s.paroliMise && s.reserve && s.zone !== 'FILET') al += '<div class="alerte a-p3"><b>' + (s.v === 'B' ? 'Plafond de mise' : 'Paroli sécurisé') + '</b> (' + srcN(s.v, 'p.2 §4') + ') : retire ' + s.reserve + ' € du tapis (réserve), ne laisse que ' + c.mise + ' €.</div>';
+    if (v22) al += '<div class="note" style="opacity:.9">' + esc(rappelN(s.v, dp.P[0], dp.E[0])) + '</div>';
+    el.innerHTML = '<div class="lab">' + (v22 ? labN(s.v) + ' · ' : '') + (s.coups ? 'Coup n° ' + (s.coups + 1) : 'Premier coup') + ' · objectif +' + s.obj + ' € · cave ' + s.cave + ' €</div><div class="mise">Mise : ' + c.mise + ' € <span style="font-size:24px">sur</span> <span class="ch ' + cc + '">' + c.chance + '</span></div><div class="etat">' + esc(c.etat) + '</div>' + (c.note ? '<div class="note">' + esc(c.note) + (v22 ? ' (' + srcN(s.v, 'p.2 §5') + ')' : ' (v2.1 p.1 §5)') + '</div>' : '') + al;
   }
   var lo = -s.cave, hi = s.obj, pos = function (v) { return (100 * (v - lo) / (hi - lo)).toFixed(2) + '%'; };
   var j = ''; (v22 ? [[lo, '−' + s.cave], [-q2.T200, 'filet'], [-q2.T150, 'P3'], [-q2.T45, 'P2'], [hi, '+' + s.obj]] : [[lo, '−' + s.cave], [-q.T200, 'filet'], [-q.T150, 'P3'], [-q.T30, 'P2'], [hi, '+' + s.obj]]).forEach(function (m) { j += '<div class="tk" style="left:' + pos(m[0]) + '"></div><div class="mk" style="left:' + pos(m[0]) + '">' + m[1] + '</div>'; });
@@ -1860,11 +2080,11 @@ function rendreAvec(s, dp) {
   j += '<div class="cur" style="left:calc(' + pos(bv) + ' - 2px)"></div><div class="val" style="left:' + pos(bv) + '">' + eur(s.bilan) + '</div>';
   $('jauge').innerHTML = j;
   var serie = s.serie > 0 ? s.serie + ' gain' + (s.serie > 1 ? 's' : '') : (s.serie < 0 ? (-s.serie) + ' perte' + (s.serie < -1 ? 's' : '') : '—');
-  var par = v22 ? paroliTxt22(s) : s.etape ? (s.zone === 'P12' ? 'coup ' + (s.etape + 1) + '/3' : (s.zone === 'P3' ? 'sécu ' + (s.etape + 1) + '/3' : 'filet 2/2')) : '—';
-  $('tuiles').innerHTML = '<div><b>' + eur(s.bilan) + '</b><span>Bilan</span></div><div><b>' + eur(s.cave + s.bilan, false) + '</b><span>Tapis (reste en cave)</span></div><div><b>' + (v22 ? palierTxt22(s) : 'P' + palier(s.bilan, s.cave) + (s.plus5 && !s.etape ? ' +' + q.D : '')) + '</b><span>Palier</span></div>' +
+  var par = v22 ? paroliTxtN(s) : s.etape ? (s.zone === 'P12' ? 'coup ' + (s.etape + 1) + '/3' : (s.zone === 'P3' ? 'sécu ' + (s.etape + 1) + '/3' : 'filet 2/2')) : '—';
+  $('tuiles').innerHTML = '<div><b>' + eur(s.bilan) + '</b><span>Bilan</span></div><div><b>' + eur(s.cave + s.bilan, false) + '</b><span>Tapis (reste en cave)</span></div><div><b>' + (v22 ? palierTxtN(s) : 'P' + palier(s.bilan, s.cave) + (s.plus5 && !s.etape ? ' +' + q.D : '')) + '</b><span>Palier</span></div>' +
     '<div><b>' + par + '</b><span>Paroli</span></div><div><b>' + serie + '</b><span>Série</span></div><div><b>' + (s.reserve ? s.reserve + ' €' : '—') + '</b><span>Réserve en cours</span></div>';
   $('explic').innerHTML = '<h2>Ce que dit la fiche</h2>' + (d ? '<div style="font-size:13.5px">Coup ' + d.n + ' : n° <b>' + d.num + '</b> → <b class="' + (d.res === 'gagné' ? 'g' : d.res === 'zéro' ? 'zz' : 'p') + '">' + d.res + '</b> (' + eur(d.gain) + ' sur ' + d.mise + ' € ' + d.chance + ')</div><ul class="regles">' + d.regles.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('') + '</ul>'
-    : '<div style="font-size:13px">Pose ' + c.mise + ' € sur ' + c.chance + ', lance, puis touche le numéro sorti. ' + (v22 ? 'Méthode v2.2 : ouverture = ' + q2.O + ' € (v2.2 p.1 §2).' : 'Départ au Palier 1 = ' + q.S1 + ' € (v2 p.1 §2 · v2.1 p.1 §2).') + ' Couleur : fiche v2 (p.1) — ' + s.chanceFixe + ' toute la session, jamais selon le numéro ou la couleur sortis avant.</div>');
+    : '<div style="font-size:13px">Pose ' + c.mise + ' € sur ' + c.chance + ', lance, puis touche le numéro sorti. ' + (v22 ? labN(s.v) + ' : ouverture = ' + q2.O + ' € (' + srcN(s.v, 'p.1 §2') + ').' : 'Départ au Palier 1 = ' + q.S1 + ' € (v2 p.1 §2 · v2.1 p.1 §2).') + ' Couleur : fiche v2 (p.1) — ' + s.chanceFixe + ' toute la session, jamais selon le numéro ou la couleur sortis avant.</div>');
   // chances (exact)
   var h = '<h2>Tes chances (calcul exact)</h2>';
   if (!s.fin && i !== undefined) {
@@ -1898,7 +2118,8 @@ function rendreAvec(s, dp) {
   majVerrou(s); $('regleMulti').innerHTML = regleMulti(s);
   rendreFiche();
   $('regleEch').innerHTML = regleEchelle(s, q);
-  $('regle22').innerHTML = '<p><b>Méthode v2.2</b> (fiche du 18/11, à choisir dans les réglages ; v2.1 par défaut)' + (v22 ? ' — <b>appliquée à cette session</b>' : '') + '. Tes valeurs : ' + esc(echelle22Txt(s)) + '.</p><table class="tab"><tr><th>Situation</th><th>Règle v2.2</th><th>Source</th></tr>' + regles22().map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td>' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td></tr>'; }).join('') + '</table>';
+  $('regle22').innerHTML = '<p><b>Méthode v2.2</b> (fiche du 18/11, à choisir dans les réglages ; v2.1 par défaut)' + (s.v === '2.2' ? ' — <b>appliquée à cette session</b>' : '') + '. Tes valeurs : ' + esc(echelle22Txt(s)) + '.</p><table class="tab"><tr><th>Situation</th><th>Règle v2.2</th><th>Source</th></tr>' + regles22().map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td>' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td></tr>'; }).join('') + '</table>';
+  $('regle3').innerHTML = ['3', 'B'].map(function (v) { return '<p><b>' + nomV3(v) + '</b> (étude du 18/11, à choisir dans les réglages)' + (s.v === v ? ' — <b>appliquée à cette session</b>' : '') + '. Tes valeurs : ' + esc(echelle3Txt({ cave: s.cave, u: s.u, v: v })) + '.</p><table class="tab"><tr><th>Situation</th><th>Règle</th><th>Source</th></tr>' + regles3(v).map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td>' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td></tr>'; }).join('') + '</table>'; }).join('');
   // historique
   var hh = ''; for (var k = lignes.length - 1; k >= 0; k--) { var l = lignes[k], cl = l.res === 'gagné' ? 'g' : (l.res === 'zéro' ? 'zz' : 'p');
     hh += '<div class="l"><div class="t"><span>#' + l.n + ' · n° <b>' + l.num + '</b> · ' + l.mise + ' € ' + l.chance + '</span><span class="' + cl + '">' + l.res + ' ' + eur(l.gain) + '</span><span>' + eur(l.bilan) + '</span></div><div class="r2">' + esc(l.etatAvant) + ' → ' + (typeof l.suivante === 'number' ? 'mise suivante ' + l.suivante + ' €' : (l.suivante === 'OBJECTIF' ? 'STOP' : 'cave vide')) + ' · ' + esc(l.regles.join(' · ')) + '</div></div>'; }
@@ -1931,14 +2152,18 @@ function rendreFiche() {
   var p = paramsFiche(); if (p.jeu) return rendreFicheM(p); var k = cleDp(p.obj, p.cave, p.dep);
   if (FICHES[k]) return dessinerFiche(FICHES[k]);
   if (FICHE_EN_COURS === k) return; FICHE_EN_COURS = k; calcOn();
-  var m0 = METH; chaine(prechauffeSimple(p.obj, p.cave, p.dep), function () { var mx = METH; METH = m0; FICHES[k] = ficheConseil(p.obj, p.cave, p.dep); if (m0 === '2.2') FICHES[k].v22 = true; METH = mx; FICHE_EN_COURS = ''; var q = paramsFiche(); if (!q.jeu && q.obj === p.obj && q.cave === p.cave && q.dep === p.dep && METH === m0) dessinerFiche(FICHES[k]); calcOff(); });
+  var m0 = METH; chaine(prechauffeSimple(p.obj, p.cave, p.dep), function () { var mx = METH; METH = m0; FICHES[k] = ficheConseil(p.obj, p.cave, p.dep); if (m0 !== '2.1') { FICHES[k].v22 = true; if (m0 !== '2.2') FICHES[k].meth = m0; } METH = mx; FICHE_EN_COURS = ''; var q = paramsFiche(); if (!q.jeu && q.obj === p.obj && q.cave === p.cave && q.dep === p.dep && METH === m0) dessinerFiche(FICHES[k]); calcOff(); });
 }
 function cl(n) { return 'niv niv-' + (n === 'trop risqué' ? 'trop' : n); }
 function dessinerFiche(f) {
   var e = f.ech, lock = enCours(), tr = function (a, b) { return '<tr><td>' + a + '</td><td>' + b + '</td></tr>'; };
-  var h = '<h2>Fiche conseil</h2><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>+' + f.obj + ' € sur ' + f.cave + ' € · ' + nomDep(f.dep).toLowerCase() + (f.v22 ? ' · méthode v2.2' : '') + '</b><br><span class="mini">ratio ' + (100 * f.ratio).toFixed(2).replace('.', ',') + ' % · 1 pour ' + fs2(f.unPour) + '</span></div><span class="' + cl(f.niveau) + '" id="ficheNiveau">' + f.niveau + '</span></div>';
+  var h = '<h2>Fiche conseil</h2><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>+' + f.obj + ' € sur ' + f.cave + ' € · ' + nomDep(f.dep).toLowerCase() + (f.v22 ? ' · ' + labN(f.meth).toLowerCase().replace('version b', 'version B') : '') + '</b><br><span class="mini">ratio ' + (100 * f.ratio).toFixed(2).replace('.', ',') + ' % · 1 pour ' + fs2(f.unPour) + '</span></div><span class="' + cl(f.niveau) + '" id="ficheNiveau">' + f.niveau + '</span></div>';
   h += f.conseils.map(function (c) { return '<div class="conseil">' + esc(c) + '</div>'; }).join('');
-  if (f.v22) { var g2 = prm22({ cave: f.cave, u: e.u });
+  if (f.v22 && estV3(f.meth)) { var g3 = prm3({ cave: f.cave, u: e.u, v: f.meth });
+    h += '<h3>Tes mises avec ce réglage (' + labN(f.meth).toLowerCase().replace('version b', 'version B') + ')</h3><table>' + tr('Unité u', e.u + ' €') + tr('Ouverture / P1 / P2 / P3', g3.O + ' / ' + g3.B1 + ' / ' + g3.B2 + ' / ' + g3.B3 + ' €') + tr('Pas d\'Alembert après une perte', '+' + g3.D + ' €') +
+    tr('Paroli (2 coups tout le long)', f.meth === 'B' ? 'intégral partout' : 'intégral en P1 (verrou ' + g3.V + ' €), sécurisé P2 +' + g3.K2 + ' € / P3 +' + g3.K3 + ' €') + tr('Plafond de mise', g3.Cap + ' €') + (f.meth === 'B' ? tr('Attente / montée', g3.W + ' € après 3 pertes · +' + g3.M + ' € après 2 gains') : '') +
+    tr('Seuils de bilan P2 / P3 / filet', '−' + fs2(g3.T45) + ' / −' + fs2(g3.T150) + ' / −' + fs2(g3.T200) + ' €') + '</table><div class="conseil">' + esc(rappelN(f.meth, f.P, f.E)) + '</div>'; }
+  else if (f.v22) { var g2 = prm22({ cave: f.cave, u: e.u });
     h += '<h3>Tes mises avec ce réglage (méthode v2.2)</h3><table>' + tr('Unité u', e.u + ' €') + tr('Ouverture / P1 / P2 / P3', g2.O + ' / ' + g2.B1 + ' / ' + g2.B2 + ' / ' + g2.B3 + ' €') + tr('Pas d\'Alembert après une perte', '+' + g2.D + ' €') +
     tr('Paroli P1 (verrou positif)', 'intégral 3 coups, 2e coup ≤ ' + g2.V + ' € si bilan entre −1 et −' + g2.V + ' €') + tr('Paroli sécurisé P2', (g2.B2 + g2.D) + ' → ' + (g2.B2 + g2.D + g2.K2) + ' → ' + (2 * (g2.B2 + g2.D) + g2.K2) + ' €') + tr('Paroli sécurisé P3', (g2.B3 + g2.D) + ' → ' + (g2.B3 + g2.D + g2.K3) + ' → ' + (2 * (g2.B3 + g2.D) + g2.K3) + ' €') + tr('Filet (2 coups)', (g2.B3 + g2.D) + ' → ' + (g2.B3 + g2.D + g2.K3) + ' €') +
     tr('Seuils de bilan P2 / P3 / filet', '−' + fs2(g2.T45) + ' / −' + fs2(g2.T150) + ' / −' + fs2(g2.T200) + ' €') + tr('Pertes d\'affilée encaissées', e.pertes + ' (la ' + (e.pertes + 1) + 'e vide la cave)') + '</table><div class="conseil">' + esc(rappel22(f.P, f.E)) + '</div>'; }
@@ -2238,9 +2463,9 @@ function rendreBot(dp) {
   if (sv) h += '<div class="botsv">Ton bilan en suivant le bot : <b>' + (bilE > 0 ? '+' : '') + botEur(bilE) + '</b> après ' + coups + ' coup' + (coups > 1 ? 's' : '') + (neg ? ' (en plus du négatif de ' + nb.neg + ' €)' : '') + '</div>';
   if (s.fin) { el.innerHTML = h + '<div class="botcalc">Session terminée : le conseil reprend à la prochaine session.</div>' + rappel; return; }
   if ((M ? bil : Math.round(2 * bil)) + T.Bu < T.m) { el.innerHTML = h + '<div class="botcalc"><b>Avec ton négatif de ' + nb.neg + ' € et le bilan de la session (' + botEur(bilE) + '), il ne reste plus la mise minimale : pas de conseil de mise.</b></div>' + rappel; return; }
-  var r = botLire(T, bil, tB), mm, me, bilApp, labM = 'méthode' + (!M && METH === '2.2' ? ' v2.2' : '');
-  if (neg) { var mn = methodeNeg(nb.o, nb.c, j, s.chanceFixe, dep, nums, tM); mm = mn.mise; me = mn; bilApp = mn.bilan; labM = 'méthode' + (!M && METH === '2.2' ? ' v2.2' : '') + ' <span>(réglée sur +' + nb.o + ' € / ' + nb.c + ' €' + (lignes.length ? ', bilan ' + botEur(bilApp) : '') + ')</span>'; }
-  else { mm = M ? eurJ(conseilM(s).mise, j) : conseil(s).mise; me = M ? methodeMEnT(dp, s, tM) : methodeSimpleEnT(dp, s, tM); bilApp = M ? eurJ(s.bilan, j) : s.bilan; if (sv) labM = 'méthode' + (!M && METH === '2.2' ? ' v2.2' : '') + ' <span>(bilan de l\'appli ' + botEur(bilApp) + ')</span>'; }
+  var r = botLire(T, bil, tB), mm, me, bilApp, labM = 'méthode' + (!M && METH !== '2.1' ? ' ' + courtN(METH) : '');
+  if (neg) { var mn = methodeNeg(nb.o, nb.c, j, s.chanceFixe, dep, nums, tM); mm = mn.mise; me = mn; bilApp = mn.bilan; labM = 'méthode' + (!M && METH !== '2.1' ? ' ' + courtN(METH) : '') + ' <span>(réglée sur +' + nb.o + ' € / ' + nb.c + ' €' + (lignes.length ? ', bilan ' + botEur(bilApp) : '') + ')</span>'; }
+  else { mm = M ? eurJ(conseilM(s).mise, j) : conseil(s).mise; me = M ? methodeMEnT(dp, s, tM) : methodeSimpleEnT(dp, s, tM); bilApp = M ? eurJ(s.bilan, j) : s.bilan; if (sv) labM = 'méthode' + (!M && METH !== '2.1' ? ' ' + courtN(METH) : '') + ' <span>(bilan de l\'appli ' + botEur(bilApp) + ')</span>'; }
   var mInj = M ? injouableM(nb.c, j) : '', mTxt = mInj ? injCourtM(nb.c, j) : '';   // v10 : méthode injouable (mise minimale > 10 % du tapis)
   var objT = neg ? 'Chance de finir à +' + s.obj + ' € au total (regagner ' + nb.o + ' €)' : 'Chance d\'atteindre +' + s.obj + ' €';
   h += '<div class="botcmp">' + labM + ' : ' + (mInj ? '<b>' + esc(mTxt) + '</b>' : '<b>' + botEur(mm) + '</b> <span>(' + pc(me.P) + ')</span>') + ' / meilleure pour l\'objectif : <b class="botbest">' + (r.b ? botEur(r.b) : '—') + '</b> <span>(' + pc(r.P) + ')</span></div>';
@@ -2248,7 +2473,7 @@ function rendreBot(dp) {
   h += '<div class="botpq"><b>Pourquoi :</b> ' + esc(r.raison) + '</div>' +
     '<table class="bottab"><tr><td>' + objT + ' en ' + Math.max(0, tB) + ' tour' + (tB > 1 ? 's' : '') + ' au plus</td><td><b>' + pc(r.P) + '</b></td></tr>' +
     '<tr><td>Perte moyenne attendue d\'ici la fin (mises du bot)</td><td><b>' + eur2(r.E - bilE) + '</b></td></tr>' +
-    (mInj ? '<tr><td>Méthode</td><td>' + esc(mTxt) + '</td></tr></table>' : '<tr><td>Méthode' + (!M && METH === '2.2' ? ' v2.2' : '') + ' : chance en ' + tM + ' tours · perte moyenne</td><td>' + pc(me.P) + ' · ' + eur2(me.E - bilApp) + '</td></tr></table>');
+    (mInj ? '<tr><td>Méthode</td><td>' + esc(mTxt) + '</td></tr></table>' : '<tr><td>Méthode' + (!M && METH !== '2.1' ? ' ' + courtN(METH) : '') + ' : chance en ' + tM + ' tours · perte moyenne</td><td>' + pc(me.P) + ' · ' + eur2(me.E - bilApp) + '</td></tr></table>');
   h += rappel;
   if (tB <= 0 || tM <= 0) h += '<div class="botcalc">Les ' + BOT_H + ' tours prévus sont joués : choisis plus de tours si tu continues.</div>';
   h += '<div class="mini">Calcul exact (programmation dynamique) sur ton gain net et les tours restants : à chaque tour, la mise (multiple de la mise minimale, au plus ton tapis et au plus ce qu\'il faut pour l\'objectif) qui donne la plus grande chance d\'atteindre l\'objectif, puis la plus petite perte moyenne. Pas de stop à −150 €, pas de mise combinée, ' + (M ? 'même cible' : 'même couleur') + ' toute la session. ' +
@@ -2365,7 +2590,7 @@ function majEtatReglages() {
   if (lock) { metClasse(r, 'r-etat'); metTexte(r, ''); }
   else if (montre) { metClasse(r, 'r-etat err'); metTexte(r, 'À corriger avant de valider (en rouge ci-dessus). Rien n\'a été changé.'); }
   else if (mod) { metClasse(r, 'r-etat mod'); metTexte(r, 'Modifié, pas encore appliqué : touche « Valider les réglages ».'); }
-  else { metClasse(r, 'r-etat ok'); metTexte(r, CALC ? 'Calcul en cours…' : ('✓ Réglages appliqués : +' + s.obj + ' € sur ' + s.cave + ' € · ' + (estM(s) ? cibleNom(s.jeu) + ' · jeton ' + nomJeton(s.jeu.jeton) : 'chance ' + s.chanceFixe + (methDe(s.v) === '2.2' ? ' · méthode v2.2' : '')) + ' · ' + nomDep(estM(s) ? s.jeu.dep : s.dep).toLowerCase() + '.' + (s.fin ? ' Session terminée : « Valider les réglages » démarre la suivante.' : (lignes.length ? '' : ' Modifiable jusqu\'au 1er coup.')))); }
+  else { metClasse(r, 'r-etat ok'); metTexte(r, CALC ? 'Calcul en cours…' : ('✓ Réglages appliqués : +' + s.obj + ' € sur ' + s.cave + ' € · ' + (estM(s) ? cibleNom(s.jeu) + ' · jeton ' + nomJeton(s.jeu.jeton) : 'chance ' + s.chanceFixe + (methDe(s.v) !== '2.1' ? ' · ' + labN(s.v).toLowerCase().replace('version b', 'version B') : '')) + ' · ' + nomDep(estM(s) ? s.jeu.dep : s.dep).toLowerCase() + '.' + (s.fin ? ' Session terminée : « Valider les réglages » démarre la suivante.' : (lignes.length ? '' : ' Modifiable jusqu\'au 1er coup.')))); }
   metDesactive($('valider'), lock);
   metTexte($('valider'), s.fin && !mod ? 'Valider et démarrer la session suivante' : 'Valider les réglages');
 }
@@ -2391,7 +2616,7 @@ function validerReglages(idAncre) {
   TOUCHE = { obj: true, cave: true, sel: true };
   var b = lireBrouillon(); if (!b.ok) { majEtatReglages(); return false; }
   ancrer(idAncre || 'reglages');
-  if (!b.jeu) METH = b.meth;   // méthode choisie (chances simples) : v2.1 ou v2.2
+  if (!b.jeu) METH = b.meth;   // méthode choisie (chances simples) : v2.1, v2.2, v3 complète ou B
   pile = [b.jeu ? nouvelleM(b.jeu, b.obj, b.cave) : nouvelle(b.chance, b.obj, b.cave, b.dep)]; lignes = []; MSG_SEL = ''; sauver();
   TOUCHE = { obj: false, cave: false, sel: false }; rendre(); majVerrou(); return true;
 }
@@ -2414,6 +2639,7 @@ function majDeparts() {
   var h = infos.map(function (x) {
     var mises = 'départ ' + fEur(x.S1) + ' € · paliers ' + fEur(x.S1) + ' / ' + fEur(x.S2) + ' / ' + fEur(x.S3) + ' €, +' + fEur(x.D) + ' € après une perte';
     if (!j && b.meth === '2.2') { var q2 = prm22({ cave: c, u: x.u }); mises = 'ouverture ' + q2.O + ' € · paliers ' + q2.B1 + ' / ' + q2.B2 + ' / ' + q2.B3 + ' €, +' + q2.D + ' € après une perte (v2.2)'; }
+    else if (!j && estV3(b.meth)) { var q3 = prm3({ cave: c, u: x.u, v: b.meth }); mises = 'ouverture ' + q3.O + ' € · paliers ' + q3.B1 + ' / ' + q3.B2 + ' / ' + q3.B3 + ' €, +' + q3.D + ' € après une perte, max ' + q3.Cap + ' € (' + courtV3(b.meth) + ')'; }
     var st;
     if (!x.dispo) st = x.raison;
     else if (!memeBase) st = 'Réussite et perte moyenne : recalculées après « Valider ».';
