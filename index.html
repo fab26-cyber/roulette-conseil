@@ -57,6 +57,7 @@ button:active{filter:brightness(1.45)}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
 .actions button{height:54px;border:0;border-radius:12px;font-size:17px;font-weight:700}
 .annul{background:#e0e0e0;color:#222}.nouv{background:#ffcc00;color:#222}
+.actions .eff{grid-column:1/-1;height:44px;background:#8b1e1e;color:#fff;font-size:15px}
 select{width:100%;font-size:17px;min-height:52px;padding:10px;border-radius:12px;border:0;margin-top:4px}
 .regles{font-size:12.5px;margin:6px 0 0;padding-left:16px}.regles li{margin-bottom:3px}
 .hist{font-size:12.5px}
@@ -106,7 +107,7 @@ html{overflow-anchor:none}
 <div id="bot" class="carte bot"><h2>Conseil du bot</h2><div class="botneg"><label for="botNeg">Mon négatif (déjà perdu) :</label> <input id="botNeg" type="number" inputmode="numeric" min="0" step="1" value="0" autocomplete="off" enterkeyhint="done"> €</div><div id="botNegNote"></div><div id="botCorps"></div></div>
 <div class="carte"><h2>Bilan</h2><div class="jauge" id="jauge"></div><div class="tuiles" id="tuiles"></div></div>
 <div class="carte"><div style="font-size:13px;margin-bottom:6px;text-align:center">Touche le <b>dernier numéro sorti</b></div><div class="tapis" id="tapis"></div></div>
-<div class="actions"><button class="annul" id="annuler">↶ Annuler le dernier</button><button class="nouv" id="nouvelle">Nouvelle session</button></div>
+<div class="actions"><button class="annul" id="annuler">↶ Annuler le dernier</button><button class="nouv" id="nouvelle">Nouvelle session</button><button class="eff" id="effacer">🗑 Effacer l'historique</button></div>
 <div class="carte" id="explic"></div>
 <div class="carte proba" id="proba"></div>
 <div class="carte" id="nsess"></div>
@@ -147,7 +148,7 @@ html{overflow-anchor:none}
 <button type="button" id="valider" class="valider">Valider les réglages</button>
 <div class="mini" id="pErr" style="color:#ffb3b3"></div></div></div>
 <div class="carte fiche" id="fiche"></div>
-<div class="carte hist"><h2>Historique des coups</h2><div id="hist"></div></div>
+<div class="carte hist"><h2>Historique des coups</h2><div class="mini" id="histNote" style="margin-bottom:6px">Gardé sur cet appareil, même si tu fermes l'appli. Pour le supprimer : « 🗑 Effacer l'historique » (sous le tapis).</div><div id="hist"></div></div>
 <div class="carte"><details><summary>Les règles appliquées (fiches v2 + v2.1 + v2.2, v3 complète, version B, Ultimate Roulette, Méthode bot)</summary>
 <div id="regle22" style="font-size:12.5px"></div>
 <div id="regle3" style="font-size:12.5px"></div>
@@ -1185,14 +1186,15 @@ function jouerR(s0, x) {
     s.rp = 0;
     const cd = codeR(s.bilan, s.pl, 0, s.u, b, k), base = codeR(s.bilan, s.pl, 0, s.u, 0, k);
     action = (s.bilan >= 0 ? "Mise suivante " : cd === 2 ? "Plancher → " : "Repli → ") + k(cd) + " €";
-    regles.push(src + " §1 verrou de décroissance stricte : mise perdue " + b + " € → mise suivante " + k(cd) + " € (cran de la zone strictement inférieur, " + k(2) + " € minimum)" + (cd < base ? " ; le cran de la série (" + k(base) + " €) est plus haut, le verrou s'applique" : ""));
+    regles.push(src + " §1 verrou de décroissance stricte : mise perdue " + b + " € → mise suivante " + k(cd) + " € (" + (sousVr(s.bilan, b, s.u, k) > cd ? "cran de la série, déjà sous la mise perdue" : "cran de la zone strictement inférieur") + ", " + k(2) + " € minimum)" + (cd < base ? " ; le cran de la série (" + k(base) + " €) est plus haut, le verrou s'applique" : ""));
   }
   if (s.bilan >= s.obj) {
     s.fin = "OBJECTIF";
     action = "STOP : +" + s.obj + " € atteint, encaisse et arrête";
     regles = [src + " : STOP dès que le bilan atteint ou dépasse +" + s.obj + " € — encaisse et arrête la session"];
   } else if (s.bilan >= 0 && res === "gagné") {
-    const r = s.etape > 0 || (s.rp || 0) > 0 || avant < 0;
+    const r = s.etape > 0 || (s.rp || 0) > 0 || avant < 0, parStop = s.etape > 0 ? s.paroliMise : 0;
+    if (parStop) regles = regles.filter((x) => !/ §2 : (gain|touché) n° /.test(x));
     s.etape = 0;
     s.mise1 = 0;
     s.paroliMise = 0;
@@ -1200,7 +1202,7 @@ function jouerR(s0, x) {
     s.rp = 0;
     s.vr = 0;
     if (r) {
-      regles.push(src + " règle (2) : bilan revenu à 0 € ou plus → reset immédiat à " + k(10) + " € (plafonné au manque)");
+      regles.push(src + " règle (2) : bilan revenu à 0 € ou plus → " + (parStop ? "l'escalier s'arrête (pas de " + parStop + " €), " : "") + "reset immédiat à " + k(10) + " € (plafonné au manque)");
       action += (action ? " · " : "") + "reset " + k(10) + " €";
     }
   }
@@ -2152,14 +2154,15 @@ function jouerMR(s0, x) {
     s.rp = 0;
     const cd = codeR(s.bilan, s.pl, 0, s.u, b, k);
     action = (cd === 2 ? "Plancher → " : "Repli → ") + E(k(cd)) + " €";
-    regles.push(src + " §1 verrou de décroissance stricte : mise perdue " + E(b) + " € → mise suivante " + E(k(cd)) + " € (cran strictement inférieur, " + E(k(2)) + " € minimum)");
+    regles.push(src + " §1 verrou de décroissance stricte : mise perdue " + E(b) + " € → mise suivante " + E(k(cd)) + " € (" + (sousVr(s.bilan, b, s.u, k) > cd ? "cran de la série, déjà sous la mise perdue" : "cran strictement inférieur") + ", " + E(k(2)) + " € minimum)");
   }
   if (s.bilan >= q.Gj) {
     s.fin = "OBJECTIF";
     action = "STOP : +" + s.obj + " € atteint, encaisse et arrête";
     regles = [src + " : STOP dès que le bilan atteint ou dépasse +" + s.obj + " € — encaisse et arrête la session"];
   } else if (s.bilan >= 0 && hit) {
-    const r = s.etape > 0 || (s.rp || 0) > 0 || avant < 0;
+    const r = s.etape > 0 || (s.rp || 0) > 0 || avant < 0, parStop = s.etape > 0 ? s.paroliMise : 0;
+    if (parStop) regles = regles.filter((x) => !/ §2 : (gain|touché) n° /.test(x));
     s.etape = 0;
     s.mise1 = 0;
     s.paroliMise = 0;
@@ -2167,7 +2170,7 @@ function jouerMR(s0, x) {
     s.rp = 0;
     s.vr = 0;
     if (r) {
-      regles.push(src + " règle (2) : bilan revenu à 0 € ou plus → reset à " + E(k(10)) + " €");
+      regles.push(src + " règle (2) : bilan revenu à 0 € ou plus → " + (parStop ? "l'escalier s'arrête (pas de " + E(parStop) + " €), " : "") + "reset à " + E(k(10)) + " €");
       action += (action ? " · " : "") + "reset " + E(k(10)) + " €";
     }
   }
@@ -3073,7 +3076,8 @@ const RAPPEL_A = "L'avantage reste au casino : en moyenne tu perds 1,35 % de tou
 // ===== FIN MÉTHODE BOT 1 H =====
 
 // ===== INTERFACE (fichier HTML autonome) =====
-var CLE_S = 'roulette_v3_session';
+var CLE_S = 'roulette_v3_session';   // ancienne sauvegarde (v17 et avant) : reprise une fois puis remplacée
+var CLE_H = 'roulette_v18_historique', VER_H = 1, HIST = { source: '', coups: 0 };   // v18 : historique des coups conservé à la fermeture
 var pile = [], lignes = [], nChoisi = 10, FICHES = {}, minuterie = null;
 function eur(v, sign) { var a = Math.abs(v), s = (a % 1 ? a.toFixed(1) : String(a)).replace('.', ',');
   return (v < 0 ? '−' : (v > 0 && sign !== false ? '+' : '')) + s + ' €'; }
@@ -3081,8 +3085,46 @@ function eur2(v) { var r = Math.round(v * 100) / 100; return (r < 0 ? '−' : (r
 function pc(p) { if (p >= 0.99995 && p < 1) return '> 99,99 %'; if (p > 0 && p < 0.00005) return '< 0,01 %'; return (100 * p).toFixed(2).replace('.', ',') + ' %'; }
 function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
 function $(id) { return document.getElementById(id); }
-function sauver() { try { localStorage.setItem(CLE_S, JSON.stringify({ pile: pile, lignes: lignes, n: nChoisi })); } catch (e) {} }
-function charger() { try { var d = JSON.parse(localStorage.getItem(CLE_S)); if (d && d.pile && d.pile.length) { pile = d.pile; lignes = d.lignes || []; nChoisi = d.n || 10; return true; } } catch (e) {} return false; }
+// v18 : on garde les réglages de départ (1er état de la session) et la liste des numéros saisis ; stockage plein ou bloqué : l'appli continue sans sauvegarde
+function sauver() { try { localStorage.setItem(CLE_H, JSON.stringify({ ver: VER_H, meth: METH, s0: pile[0], nums: lignes.map(function (l) { return l.num; }), n: nChoisi, coups: lignes.length, bilan: pile[pile.length - 1].bilan })); } catch (e) {} }
+// Un coup, exactement comme la saisie (sans affichage ni sauvegarde) : sert à la saisie et à la reprise
+function pas(x) { var s = etat(); if (s.fin) return false; if (estM(s) && !s.coups && injouableM(s.cave, s.jeu)) return false;   // v10 : réglage injouable, aucun coup
+  var r = estM(s) ? jouerM(s, x) : jouer(s, x); pile.push(r.etat); if (r.ligne) lignes.push(r.ligne); return true; }
+// Reprise : réglages vérifiés (le 1er état est recréé par le moteur et doit être identique), puis numéros rejoués un par un
+function reprendre(d) {
+  if (!d || d.ver !== VER_H || !d.s0 || typeof d.s0 !== 'object' || !Array.isArray(d.nums) || d.nums.length > 5000) return false;
+  var s0 = d.s0, M = !!s0.jeu, chances = [].map.call($('mode').options, function (o) { return o.value; });
+  if (!(typeof s0.obj === 'number' && typeof s0.cave === 'number' && s0.obj >= 1 && s0.obj <= 200 && s0.cave >= 50 && s0.cave <= 2000 && s0.obj < s0.cave) || s0.bilan !== 0 || s0.fin) return false;
+  if (!M && chances.indexOf(s0.chanceFixe) < 0) return false;
+  if (!d.nums.every(function (x) { return typeof x === 'number' && x % 1 === 0 && x >= 0 && x <= 36; })) return false;
+  METH = methDe(d.meth); if (!M) METH = methDe(s0.v);
+  var p0 = M ? nouvelleM(s0.jeu, s0.obj, s0.cave) : nouvelle(s0.chanceFixe, s0.obj, s0.cave, depDe(s0.dep));
+  if (JSON.stringify(p0) !== JSON.stringify(s0)) return false;
+  pile = [p0]; lignes = [];
+  for (var i = 0; i < d.nums.length; i++) if (!pas(d.nums[i])) return false;
+  var n = Math.round(Number(d.n)); nChoisi = n >= 1 && n <= 200 ? n : 10;
+  return true;
+}
+function charger() {
+  var brut = null, vieux = null, d = null;
+  try { brut = localStorage.getItem(CLE_H); vieux = brut === null ? localStorage.getItem(CLE_S) : null; } catch (e) { HIST = { source: 'stockage indisponible', coups: 0 }; return false; }
+  if (brut === null && vieux === null) { HIST = { source: 'vide', coups: 0 }; return false; }
+  try {
+    if (brut !== null) d = JSON.parse(brut);
+    else { var v = JSON.parse(vieux); if (v && v.pile && v.pile.length && v.lignes && v.lignes.length === v.pile.length - 1) { var a = v.pile[v.pile.length - 1];   // reprise de la sauvegarde v17
+      d = { ver: VER_H, meth: a && !a.jeu ? methDe(a.v) : '2.1', s0: v.pile[0], nums: v.lignes.map(function (l) { return l.num; }), n: v.n }; } }
+    if (reprendre(d)) { HIST = { source: brut !== null ? 'v18' : 'v17', coups: lignes.length }; if (brut === null) { sauver(); try { localStorage.removeItem(CLE_S); } catch (e) {} } return true; }
+  } catch (e) {}
+  HIST = { source: 'illisible', coups: 0 }; METH = '2.1';   // sauvegarde abîmée : session vide (réglages par défaut), sans erreur
+  try { localStorage.removeItem(CLE_H); localStorage.removeItem(CLE_S); } catch (e) {}
+  return false;
+}
+// « Effacer l'historique » : demande confirmation, puis session vide avec les mêmes réglages (bilan 0 €)
+function effacerHistorique() {
+  if (!confirm('Effacer l\'historique des coups de cette session ? Les numéros saisis et le bilan seront supprimés (le bilan repart à 0 €, mêmes réglages). C\'est définitif.')) return false;
+  try { localStorage.removeItem(CLE_H); localStorage.removeItem(CLE_S); } catch (e) {}
+  ancrer('conseil'); nouvelleSession(); HIST = { source: 'effacé', coups: 0 }; return true;
+}
 function etat() { var s = norm(pile[pile.length - 1]); if (!estM(s)) METH = methDe(s.v); return s; }   // la méthode suit la session des chances simples
 function enCours() { return lignes.length > 0 && !etat().fin; }
 function lireParams() { var b = lireBrouillon(); return b.ok ? { obj: b.obj, cave: b.cave } : null; }
@@ -3093,8 +3135,7 @@ function dpDe(o, c, dep, fin) {
 }
 // « Nouvelle session » : bilan à 0 € avec les réglages appliqués (affichés en haut) ; l'écran ne bouge pas.
 function nouvelleSession() { var s = etat(); pile = [estM(s) ? nouvelleM(s.jeu, s.obj, s.cave) : nouvelle(s.chanceFixe, s.obj, s.cave, depDe(s.dep))]; lignes = []; MSG_SEL = ''; sauver(); rendre(); chargerBrouillon(etat()); majVerrou(); }
-function saisir(x) { var s = etat(); if (s.fin) return; if (estM(s) && !s.coups && injouableM(s.cave, s.jeu)) return;   // v10 : réglage injouable, aucun coup
-  var r = estM(s) ? jouerM(s, x) : jouer(s, x); MSG_SEL = ''; pile.push(r.etat); if (r.ligne) lignes.push(r.ligne); sauver(); rendre(); }
+function saisir(x) { if (!pas(x)) return; MSG_SEL = ''; sauver(); rendre(); }   // v18 : même coup qu'avant (pas), puis sauvegarde
 function annuler() { if (pile.length > 1) { pile.pop(); lignes.pop(); sauver(); rendre(); if (!lignes.length) chargerBrouillon(etat()); } }
 function rendre() { var s = etat(); if (estM(s)) return dpDeM(s, function (dp) { rendreAvecM(s, dp); }); dpDe(s.obj, s.cave, s.dep, function (dp) { rendreAvec(s, dp); }); }
 function rendreAvec(s, dp) {
@@ -3228,8 +3269,11 @@ function initApp() {
   bouton(0); for (var x = 1; x <= 36; x++) bouton(x);
   $('annuler').onclick = annuler;
   $('nouvelle').onclick = function () { if (lignes.length === 0 || etat().fin || confirm('Commencer une nouvelle session ? Le bilan repart à 0 €.')) { ancrer('conseil'); nouvelleSession(); } };
+  $('effacer').onclick = effacerHistorique;   // v18
   initReglages();
   if (!charger()) { pile = [nouvelle('Rouge', 10, 300)]; lignes = []; sauver(); }
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {}); } catch (e) {}   // v18 : demande au navigateur de ne pas vider le stockage
+  window.addEventListener('pagehide', function () { sauver(); });   // v18 : sauvegarde aussi à la fermeture (déjà faite à chaque coup)
   chargerBrouillon(etat()); rendre();
 }
 // v13 : règles du Repli progressif (fiche V3), chances simples (j = null) ou autres mises (transposition)
