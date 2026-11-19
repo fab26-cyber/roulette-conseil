@@ -93,6 +93,7 @@ html{overflow-anchor:none}
 .botmode{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}.botmode button{min-height:52px;border:0;border-radius:10px;font-size:15px;font-weight:700;background:#0d4733;color:#fff}.botmode button span{font-size:12px;font-weight:400;opacity:.85}.botmode button.on{background:#f5c542;color:#1a1a1a}
 .botcmp{font-size:17px;line-height:1.45;margin:6px 0;background:#0d4733;border-radius:10px;padding:8px}.botcmp span{font-size:14px;opacity:.9}.botbest{color:#ffd479}
 .botmise{font-size:20px;margin:8px 0}.botmise b{font-size:24px;color:#ffd479}.botpq{font-size:16px;margin:6px 0}.botsv{font-size:16px;margin:4px 0}.botcalc{font-size:16px;margin:8px 0}
+.botfin{font-size:17px;line-height:1.45;margin:8px 0;padding:10px;border-radius:10px;background:#1f7a3a;border:1px solid #9cff9c}
 .bottab{width:100%;border-collapse:collapse;font-size:15px;margin:6px 0}.bottab td{padding:5px 2px;border-top:1px solid rgba(255,255,255,.15)}.bottab td:last-child{text-align:right;white-space:nowrap}
 .botrap{font-size:15px;margin-top:8px;padding:8px;border-radius:10px;background:#5a1f1f}
 .botneg{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:700;margin:4px 0}.botneg input{width:110px;height:44px;font-size:19px;border-radius:9px;border:0;padding:0 8px;text-align:right}.botnegexp{font-size:14px;margin:4px 0 6px;opacity:.9}.botrefaire{font-size:15px;margin:0 0 8px;padding:6px 8px;border-radius:8px;background:#6b4a12}
@@ -3169,7 +3170,7 @@ function appliquerM(ix) {
   validerReglages('fiche');
 }
 // ===== FIN INTERFACE — MISES MULTIPLES =====
-// ===== CONSEIL DU BOT (fichier HTML) : encart sous « Ta prochaine mise », recalculé à chaque coup =====
+// ===== CONSEIL DU BOT (fichier HTML, v15 : fin de session claire) : encart sous « Ta prochaine mise », recalculé à chaque coup =====
 var BOT_H = 70, BOT_MODE = 'appli', BOT_EN_COURS = '', BOT_DP = null, BOT_NEG = 0;
 try { var bh0 = Number(localStorage.getItem('roulette_bot_h')); if (BOT_H_OPT.indexOf(bh0) >= 0) BOT_H = bh0; if (localStorage.getItem('roulette_bot_mode') === 'bot') BOT_MODE = 'bot';
   var bn0 = Math.floor(Number(localStorage.getItem('roulette_bot_neg'))); if (bn0 > 0) BOT_NEG = bn0; } catch (e) {}
@@ -3209,7 +3210,17 @@ function rendreBot(dp) {
   if (BOT_MODE === 'bot') { sv = botSuivi(T, nums, gX); bil = sv.bilan; coups = sv.coups; } else { bil = s.bilan; coups = lignes.length; }
   var bilE = bil * f, tB = BOT_H - coups, tM = Math.max(0, BOT_H - lignes.length), sur = M ? cibleNom(j) : s.chanceFixe;
   if (sv) h += '<div class="botsv">Ton bilan en suivant le bot : <b>' + (bilE > 0 ? '+' : '') + botEur(bilE) + '</b> après ' + coups + ' coup' + (coups > 1 ? 's' : '') + (neg ? ' (en plus du négatif de ' + nb.neg + ' €)' : '') + '</div>';
-  if (s.fin) { el.innerHTML = h + '<div class="botcalc">Session terminée : le conseil reprend à la prochaine session.</div>' + rappel; return; }
+  // v15 : fin de session — bilan réel (mises du bot) et bilan simulé de l'appli séparés ; plus de mise conseillée, de « — » ni de « 0 tours » une fois la session finie
+  var nomM = 'méthode' + (M ? (j.v === 'R' ? ' Ultimate Roulette' : '') : METH !== '2.1' ? ' ' + courtN(METH) : ''), appE = M ? eurJ(s.bilan, j) : s.bilan, nN = lignes.length;
+  var sgE = function (v) { return (v > 0 ? '+' : '') + botEur(v); };
+  var appT = 'Bilan simulé de l\'appli (mises de la ' + nomM + ' sur les ' + nN + ' numéro' + (nN > 1 ? 's' : '') + ' saisi' + (nN > 1 ? 's' : '') + ') : <b>' + sgE(appE) + '</b>';
+  if (sv && sv.fin === 'OBJECTIF') { el.innerHTML = h + '<div class="botfin"><b>Objectif +' + s.obj + ' € atteint en suivant le bot : on arrête, ne mise plus.</b><br>Ton bilan réel (mises du bot) : <b>' + sgE(bilE) + '</b> après ' + coups + ' coup' + (coups > 1 ? 's' : '') +
+      (neg ? ' : ton négatif de ' + nb.neg + ' € est regagné, tu finis à <b>' + sgE(bilE - nb.neg) + '</b> au total' : '') + '. Encaisse.' + (nN > coups ? '<br>Les ' + (nN - coups) + ' numéro' + (nN - coups > 1 ? 's' : '') + ' saisi' + (nN - coups > 1 ? 's' : '') + ' après le ' + coups + (coups > 1 ? 'e' : 'er') + ' coup ne compte' + (nN - coups > 1 ? 'nt' : '') + ' pas : tu avais déjà fini.' : '') + '</div>' +
+      '<div class="botcalc">' + appT + ' — pour info seulement : c\'est ce qu\'aurait donné la méthode, pas ton argent si tu as suivi le bot.</div>' + rappel; return; }
+  if (s.fin) { el.innerHTML = h + '<div class="botfin"><b>Session ' + (sv ? 'de l\'appli ' : '') + 'terminée : ' + (s.fin === 'OBJECTIF' ? 'objectif +' + s.obj + ' € atteint par la ' + nomM + ', on arrête' : 'cave vide, on arrête') + '.</b><br>' +
+      (sv ? appT + '. Ton bilan réel est celui en suivant le bot, ci-dessus.' : 'Bilan (mises de la ' + nomM + ') : <b>' + sgE(appE) + '</b>.') + '<br>Le conseil reprend à la prochaine session.</div>' + rappel; return; }
+  if (BOT_H - coups <= 0) { el.innerHTML = h + '<div class="botfin"><b>Les ' + BOT_H + ' tours prévus sont joués : objectif +' + s.obj + ' € non atteint.</b><br>' + (sv ? 'Ton bilan réel (mises du bot) : <b>' + sgE(bilE) + '</b> après ' + coups + ' coup' + (coups > 1 ? 's' : '') + '.<br>' + appT + ' (pour info).' : 'Bilan (mises de la ' + nomM + ') : <b>' + sgE(appE) + '</b>.') +
+      '<br>Si tu continues, choisis plus de tours : le conseil reprend.</div>' + rappel; return; }
   if ((M ? bil : Math.round(2 * bil)) + T.Bu < T.m) { el.innerHTML = h + '<div class="botcalc"><b>Avec ton négatif de ' + nb.neg + ' € et le bilan de la session (' + botEur(bilE) + '), il ne reste plus la mise minimale : pas de conseil de mise.</b></div>' + rappel; return; }
   var r = botLire(T, bil, tB), mm, me, bilApp, labM = 'méthode' + (M ? (j.v === 'R' ? ' Ultimate Roulette' : '') : METH !== '2.1' ? ' ' + courtN(METH) : '');
   if (neg) { var mn = methodeNeg(nb.o, nb.c, j, s.chanceFixe, dep, nums, tM); mm = mn.mise; me = mn; bilApp = mn.bilan; labM = 'méthode' + (M ? (j.v === 'R' ? ' Ultimate Roulette' : '') : METH !== '2.1' ? ' ' + courtN(METH) : '') + ' <span>(réglée sur +' + nb.o + ' € / ' + nb.c + ' €' + (lignes.length ? ', bilan ' + botEur(bilApp) : '') + ')</span>'; }
