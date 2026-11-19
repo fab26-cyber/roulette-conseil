@@ -79,6 +79,7 @@ details summary{font-weight:700;font-size:14px;color:#ffd479;cursor:pointer}
 .etape{background:rgba(0,0,0,.14);border-radius:12px;padding:10px;margin-top:10px}
 .depbtn{display:block;width:100%;text-align:left;min-height:64px;margin-top:8px;border:2px solid rgba(255,255,255,.18);border-radius:12px;background:rgba(255,255,255,.07);color:inherit;padding:10px 12px;font-size:16px;line-height:1.35;font-family:inherit}
 .depbtn.on{border-color:#ffcc00;background:rgba(255,204,0,.16)}.depbtn:disabled{opacity:.5}.depbtn b{font-size:17px}.depbtn .dm{display:block;font-size:15px}.depbtn .ds{display:block;font-size:14px;opacity:.9;margin-top:2px}
+.depbtn .dn{display:block;font-size:14px;margin-top:4px;color:#ffd54d}
 .dep-note{font-size:13px;margin-top:8px;opacity:.85}
 .et-t{font-size:16px;font-weight:800;color:#ffd479;display:flex;align-items:center;gap:8px}.et-t .num{display:inline-flex;width:28px;height:28px;border-radius:14px;background:#ffd479;color:#1a1a1a;align-items:center;justify-content:center;font-size:15px}
 .valider{width:100%;min-height:56px;margin-top:8px;border:0;border-radius:14px;background:#ffcc00;color:#1a1a1a;font-size:19px;font-weight:800}.valider:disabled{opacity:.4}
@@ -126,7 +127,7 @@ html{overflow-anchor:none}
 <select id="mode" autocomplete="off"><option value="Rouge">Rouge</option><option value="Noir">Noir</option><option value="Pair">Pair</option><option value="Impair">Impair</option><option value="Manque">Manque (1–18)</option><option value="Passe">Passe (19–36)</option></select></label>
 <label id="lMeth" class="lab">Méthode (toute la session)
 <select id="meth" autocomplete="off"><option value="2.1">Méthode v2.1 (paliers 10 / 15 / 30 €)</option><option value="2.2">Méthode v2.2 (ouverture 10 €, paliers 7 / 15 / 30 €)</option><option value="3">Méthode v3 complète (Paroli 2 coups, max 60 €)</option><option value="B">Version B (attente / montée, max 60 €)</option><option value="R">Ultimate Roulette (fiche V3 : repli 10 / 7 / 5 / 3 / 2 €, verrou, Paroli jusqu'à 5 paliers)</option></select></label>
-<div class="mini" id="noteMeth" style="margin-top:4px">v2.1 par défaut. v2.2 (fiche du 18/11) : Palier 1 amorti à 7 €, verrou positif, Paroli sécurisé 20 → 30 → 50 € en Palier 2. v3 complète : toutes les idées de la v2.2 (paliers, +5, réserve, verrou, filet, reset) avec un Paroli à 2 coups tout le long et jamais plus de 60 € (à +50 € / 300 €). Version B : Paroli 2 coups doublé, mise d&#39;attente 5 € après 3 pertes d&#39;affilée, +10 € après 2 gains d&#39;affilée, jamais plus de 60 €. v2.2, v3 complète et B : chances simples seulement. Ultimate Roulette (Paroli à repli progressif, fiche V3 du 18/11) : 10 € à l&#39;ouverture, repli 7 / 5 / 3 / 2 € après des pertes d&#39;affilée (5 / 3 / 2 € quand le bilan est sous −25 €), après une perte jamais plus que la mise perdue (verrou, 2 € minimum), Paroli en escalier avec réserve (jusqu&#39;à 2 → 4 → 6 → 10 → 18 € sous −25 €), reprise 5 € et reset ; disponible aussi pour tiers, douzaine, carrés et pleins (transposition déclarée). L&#39;avantage reste au casino avec toutes : 1,35 % de chaque mise sur chances simples avec La Partage, 2,70 % sur les autres mises.</div>
+<div class="mini" id="noteMeth" style="margin-top:4px">v2.1 par défaut. v2.2 (fiche du 18/11) : Palier 1 amorti à 7 €, verrou positif, Paroli sécurisé 20 → 30 → 50 € en Palier 2. v3 complète : toutes les idées de la v2.2 (paliers, +5, réserve, verrou, filet, reset) avec un Paroli à 2 coups tout le long et jamais plus de 60 € (à +50 € / 300 €). Version B : Paroli 2 coups doublé, mise d&#39;attente 5 € après 3 pertes d&#39;affilée, +10 € après 2 gains d&#39;affilée, jamais plus de 60 €. v2.2, v3 complète et B : chances simples seulement. Ultimate Roulette (Paroli à repli progressif, fiche V3 du 18/11) : 10 € à l&#39;ouverture, repli 7 / 5 / 3 / 2 € après des pertes d&#39;affilée (5 / 3 / 2 € quand le bilan est sous −25 €), après une perte jamais plus que la mise perdue (verrou, 2 € minimum), Paroli en escalier avec réserve (jusqu&#39;à 2 → 4 → 6 → 10 → 18 € sous −25 €), reprise 5 € et reset ; disponible aussi pour tiers, douzaine, carrés et pleins (transposition déclarée) ; mise de départ jamais sous 5 mises minimales (ni 8), relevée si besoin et signalée, pour que les crans restent distincts. L&#39;avantage reste au casino avec toutes : 1,35 % de chaque mise sur chances simples avec La Partage, 2,70 % sur les autres mises.</div>
 <label id="lCible" class="lab" style="display:none"><span id="tCible">Ta cible</span>
 <select id="cible" autocomplete="off"></select></label>
 <label id="lNb" class="lab" style="display:none"><span id="tNb">Nombre</span>
@@ -212,7 +213,8 @@ function uniteDep(u, dep, m = 1) {
   return Math.max(m, m * Math.floor(u / (div * m) + 0.5));
 }
 function nouvelle(chance, obj = OBJ_DEF, cave = CAVE_DEF, dep = "normal") {
-  const s = brut(chance, obj, cave, uniteDep(uniteDe(obj, cave), dep));
+  const u0 = uniteDep(uniteDe(obj, cave), dep);
+  const s = brut(chance, obj, cave, METH === "R" ? uniteR(u0) : u0);
   if (depDe(dep) !== "normal")
     s.dep = depDe(dep);
   if (METH !== "2.1")
@@ -983,6 +985,64 @@ const R_CRANS = [10, 7, 5, 3, 2];
 const R_CRANS_B = [10, 5, 3, 2, 2];
 const R_ESC = { 10: [10], 7: [7, 14], 5: [5, 10, 15], 3: [3, 6, 10], 33: [3, 6, 10, 15], 2: [2, 4, 6], 22: [2, 4, 6, 10, 18] };
 const estR = (v) => v === "R";
+const R_CHAINES = [[2, 3, 5, 7, 10], [7, 14], [5, 10, 15], [3, 6, 10], [3, 6, 10, 15], [2, 4, 6], [2, 4, 6, 10, 18]];
+const crDistincts = (k) => R_CHAINES.every((L) => L.every((x, i) => i === 0 || k(L[i - 1]) < k(x)));
+const okR = (v) => crDistincts((x) => ech(x, v));
+const U_MIN_R = 5;
+function uniteR(u, m = 1) {
+  let v = Math.max(U_MIN_R, Math.ceil(u / m - 0.000000001));
+  while (!okR(v))
+    v++;
+  return v * m;
+}
+function uniteRM(u, m, Bj) {
+  const dix = m * Math.floor(Bj / (PLAF_TAPIS * m));
+  let v = uniteR(u, m) / m;
+  const d = dix / m, okCap = (w) => okR(w) && crDistincts((x) => Math.min(ech(x, w), d));
+  if (!okCap(v)) {
+    let w = v;
+    while (w > U_MIN_R && !okCap(w))
+      w--;
+    v = w;
+  }
+  return v * m;
+}
+function plafondRM(u, j, cave) {
+  const m = gJ(j).m, dix = m * Math.floor(cave * 100 / j.jeton / (PLAF_TAPIS * m)), k = (x) => Math.min(stJ(x, u, m), dix);
+  if (stJ(18, u, m) <= dix)
+    return "";
+  const E = (x) => fEur(eurJ(x, j));
+  return "plafond de 10 % du tapis (" + E(dix) + " €) : les plus hauts paliers du Paroli sont joués à " + E(dix) + " € (2 → 4 → 6 → 10 → 18 joué " + [2, 4, 6, 10, 18].map((x) => E(k(x))).join(" → ") + " €)";
+}
+function manqueRTxt(o, u, j) {
+  const g = j ? gJ(j) : null, k10 = j && g ? stJ(10, u, g.m) : ech(10, u);
+  const m0 = (o2) => j && g ? g.m * Math.ceil(o2 * 100 / j.jeton / g.kn - 0.000000001) : Math.ceil(o2 - 0.000000001);
+  if (m0(o) >= k10)
+    return "";
+  let oc = o;
+  while (oc < 200 && m0(oc) < k10)
+    oc++;
+  const E = (x) => j ? fEur(eurJ(x, j)) : String(x);
+  return "objectif petit pour cette mise : « jamais plus que ce qui manque » limite l'ouverture à " + E(m0(o)) + " € au lieu de " + E(k10) + " € ; les crans plus bas ne jouent qu'après une perte, sous la mise perdue" + (m0(oc) >= k10 ? " (objectif conseillé : au moins +" + oc + " €)" : "");
+}
+function objBloqueR(o, c, u, j) {
+  const g = j ? gJ(j) : null, k2 = j && g ? stJ(2, u, g.m) : ech(2, u);
+  const m0 = (o2) => j && g ? g.m * Math.ceil(o2 * 100 / j.jeton / g.kn - 0.000000001) : Math.ceil(o2 - 0.000000001);
+  if (m0(o) > k2)
+    return "";
+  let oc = o;
+  while (oc < 200 && oc + 1 < c && m0(oc) <= k2)
+    oc++;
+  const E = (x) => j ? fEur(eurJ(x, j)) : String(x);
+  return "Bloqué en Ultimate Roulette : objectif trop petit. +" + o + " € s'atteint dès une mise de " + E(m0(o)) + " €, pas plus que la plus petite mise de la fiche (" + E(k2) + " €) : avec « jamais plus que ce qui manque » et le verrou, toutes les mises resteraient à " + E(Math.min(m0(o), k2)) + " € (crans confondus). " + (m0(oc) > k2 ? "Réglage valide le plus proche : objectif +" + oc + " €." : "Choisis une autre mise ou une autre méthode.");
+}
+function objBloqueRDe(o, c, j, dep) {
+  if (j) {
+    const jj = jeuDep({ ...j, v: "R" }, dep);
+    return jouableM(c, jj) ? objBloqueR(o, c, nouvelleM(jj, o, c).u, jj) : "";
+  }
+  return objBloqueR(o, c, uniteR(uniteDep(uniteDe(o, c), dep)), null);
+}
 const nomR = "Ultimate Roulette";
 const zoneB = (b, u) => b * 10 < -25 * u;
 const escDe = (code, avant, u) => zoneB(avant, u) && (code === 3 || code === 2) ? 11 * code : code;
@@ -1029,6 +1089,8 @@ function conseilR(s0) {
   let note = "";
   if (mise < prevue)
     note = mise === manque ? "plafond : il manque " + manque + " € pour +" + s.obj + " €" : "plafond : il reste " + reste + " € dans la cave";
+  if (!okR(s.u))
+    note = (note ? note + " · " : "") + "session commencée avec une unité trop basse (crans de la fiche confondus) : fais « Nouvelle session »";
   return { mise, chance: s.chance, etat, note };
 }
 function jouerR(s0, x) {
@@ -1171,7 +1233,7 @@ function reglesR() {
     ["Escalier complet, bilan < 0", "Reprise à 5 € (zone A ou B), suivie du repli strict 3 → 2 € si le coup est perdu.", s + " règle (3)"],
     ["Bilan revenu à 0 ou plus", "Reset immédiat à 10 €, plafonné au manque.", s + " règle (2)"],
     ["Toujours", "Jamais plus que ce qui manque pour l'objectif (arrondi à l'euro supérieur) ni que le reste de la cave. STOP dès +10 €. Cave vide : fin, ne recharge jamais.", s + " règle (1) · repères"],
-    ["Mise à l'échelle", "Autre objectif, cave ou départ : montants × u/10 comme la v2.1 de l'appli (u = 10 € à +10 € / 300 €), seuil de zone −25 € × u/10.", "adaptation déclarée"],
+    ["Mise à l'échelle", "Autre objectif, cave ou départ : montants × u/10 comme la v2.1 de l'appli (u = 10 € à +10 € / 300 €), seuil de zone −25 € × u/10. Unité jamais sous 5 € (ni égale à 8 €) : en dessous, l'arrondi à l'euro confondrait les crans (ex. u = 1 € : tout à 1 €) ; l'appli relève alors la mise de départ et le dit.", "adaptation déclarée (v14)"],
     ["Honnêteté", "Calcul exact dans l'appli, pour tes réglages. L'avantage reste au casino.", "appli v13"]
   ];
 }
@@ -1645,7 +1707,8 @@ function uniteM(jeu, obj, cave) {
   delete j0.v;
   while (u > g.m && pertesM(j0, obj, cave, u) < Lc)
     u -= g.m;
-  return uniteDep(u, jeu.dep, g.m);
+  const ud = uniteDep(u, jeu.dep, g.m);
+  return jeu.v === "R" ? uniteRM(ud, g.m, cave * 100 / jeu.jeton) : ud;
 }
 function nouvelleM(jeu, obj, cave) {
   return brutM(jeu, obj, cave, uniteM(jeu, obj, cave));
@@ -2003,6 +2066,8 @@ function conseilMR(s) {
   let note = "";
   if (mise < prevue)
     note = mise === manque ? "plafond : " + fEur(eurJ(manque, s.jeu)) + " € suffisent pour atteindre +" + s.obj + " € si ça tombe" : mise === dix ? "plafond : au plus 10 % du tapis par coup" : "plafond : il reste " + fEur(eurJ(reste, s.jeu)) + " € dans la cave";
+  if (s.u % q.m !== 0 || !okR(s.u / q.m))
+    note = (note ? note + " · " : "") + "session commencée avec une unité trop basse (crans de la fiche confondus) : fais « Nouvelle session »";
   return { mise, chance: nom, etat, note, placement: mise >= q.m ? placement(s.jeu, mise) : "" };
 }
 function jouerMR(s0, x) {
@@ -2181,8 +2246,17 @@ function lignesFicheR(u, j) {
   ];
 }
 function ficheRLignes(o, c, j, dep = "normal") {
-  const u = j ? nouvelleM(j, o, c).u : nouvelle("Manque", o, c, dep).u;
-  return [["Unité u", j ? fEur(eurJ(u, j)) + " € (" + u + " jeton" + (u > 1 ? "s" : "") + ")" : u + " €"]].concat(lignesFicheR(u, j));
+  const u = j ? nouvelleM(j, o, c).u : uniteR(uniteDep(uniteDe(o, c), dep));
+  const u0 = j ? uniteM(jeuDep({ ...j, v: undefined }, depDe(j.dep)), o, c) : uniteDep(uniteDe(o, c), dep), pl = j ? plafondRM(u, j, c) : "";
+  const L = [["Unité u", j ? fEur(eurJ(u, j)) + " € (" + u + " jeton" + (u > 1 ? "s" : "") + ")" : u + " €"]];
+  if (u !== u0)
+    L.push([u > u0 ? "Mise de départ relevée" : "Mise de départ abaissée", fR(u0, j)(10) + " € → " + fR(u, j)(10) + " € (crans de la fiche distincts)"]);
+  if (pl)
+    L.push(["Plafond 10 % du tapis", pl]);
+  const mq = manqueRTxt(o, u, j);
+  if (mq)
+    L.push(["Objectif et ouverture", mq]);
+  return L.concat(lignesFicheR(u, j));
 }
 function transpoRTxt() {
   return [
@@ -2190,7 +2264,8 @@ function transpoRTxt() {
     "Montants : × u/10 comme la v2.1 de l'appli pour ces mises (u ≈ objectif / gain net, en jetons, multiple de la mise minimale : 6 jetons au tiers du cylindre, m jetons pour m pleins ou m carrés) ; seuil de zone −25 € × u/10.",
     "Raté = coup défavorable (le zéro aussi : pas de La Partage hors chances simples). Touché = gain de l'escalier : tu laisses la mise suivante de l'escalier sur le tapis et tu encaisses tout le reste du gain (c'est la « réserve »).",
     "Plafonds de l'appli inchangés pour ces mises : jamais plus que ce qui suffit pour l'objectif si ça touche, ni que le tapis, ni plus de 10 % du tapis ; la session s'arrête quand la mise minimale dépasse 10 % du tapis.",
-    "Départs 2 € / 5 € (plus petit / moyen) : u ÷ 5 ou ÷ 2 comme pour les autres versions. L'avantage reste au casino : 2,70 % de chaque mise sur ces mises."
+    "Unité d'Ultimate Roulette (v14) : jamais sous 5 mises minimales, pour que 10 / 7 / 5 / 3 / 2 et chaque palier de Paroli restent distincts (sinon la mise de départ est relevée, et l'appli le dit) ; abaissée si le plafond de 10 % du tapis écraserait les paliers au départ ; injouable (avec réglages proposés) si 5 mises minimales d'ouverture ne tiennent pas sous ce plafond.",
+    "Départs 2 € / 5 € (plus petit / moyen) : u ÷ 5 ou ÷ 2 comme pour les autres versions, puis la règle d'unité ci-dessus ; un départ qui retombe sur la même mise qu'un autre est grisé, avec le départ à prendre. L'avantage reste au casino : 2,70 % de chaque mise sur ces mises."
   ];
 }
 const CACHE_M = {};
@@ -2208,15 +2283,20 @@ function resumeM(o, c, j) {
   const d = dpCacheM(o, c, j, false);
   return { niveau: niveauDe(d.P[0]), P: d.P[0], E: d.E[0], F: d.F[0], Pcave: 1 - d.P[0] };
 }
-const jouableM = (cave, j) => cave * 100 / j.jeton >= PLAF_TAPIS * gJ(j).m;
-const caveMinM = (j) => Math.ceil(PLAF_TAPIS * gJ(j).m * j.jeton / 100 - 0.000000001);
+const jouableM = (cave, j) => cave * 100 / j.jeton >= PLAF_TAPIS * gJ(j).m * (j.v === "R" ? U_MIN_R : 1);
+const caveMinM = (j) => Math.ceil(PLAF_TAPIS * gJ(j).m * (j.v === "R" ? U_MIN_R : 1) * j.jeton / 100 - 0.000000001);
 function injouableM(cave, j) {
   if (jouableM(cave, j))
     return "";
   const m = gJ(j).m;
+  if (j.v === "R" && cave * 100 / j.jeton >= PLAF_TAPIS * m)
+    return "Ultimate Roulette injouable avec ces réglages : pour garder les crans 10 / 7 / 5 / 3 / 2 distincts, l'ouverture doit valoir au moins " + U_MIN_R + " mises minimales (" + fEur(eurJ(U_MIN_R * m, j)) + " € en " + cibleNom(j) + ", jeton " + nomJeton(j.jeton) + ") et tenir sous ton plafond de " + fEur(Math.round(cave * 100 / PLAF_TAPIS) / 100) + " € par coup (10 % de " + fEur(cave) + " €). Réglage valide le plus proche : " + (() => {
+      const jp = [50, 10].filter((t) => t < j.jeton).map((t) => ({ ...j, jeton: t })).find((jj) => jouableM(cave, jj) && jetonOk(cave, jj));
+      return jp ? "jeton de " + nomJeton(jp.jeton) + " avec la même cave, ou " : "";
+    })() + "une cave d'au moins " + fEur(caveMinM(j)) + " €" + (caveMinM(j) > 2000 ? " (au-delà des 2000 € de l'appli : choisis une autre mise)" : "") + ".";
   return "Réglage injouable : la mise minimale en " + cibleNom(j) + " (" + m + (m > 1 ? " jetons" : " jeton") + " de " + nomJeton(j.jeton) + " = " + fEur(eurJ(m, j)) + " €) dépasse ton plafond de " + fEur(Math.round(cave * 100 / PLAF_TAPIS) / 100) + " € par coup (10 % de " + fEur(cave) + " €) : la session s'arrêterait avant le 1er coup.";
 }
-const injCourtM = (cave, j) => "injouable (mise minimale " + fEur(eurJ(gJ(j).m, j)) + " € > plafond " + fEur(Math.round(cave * 100 / PLAF_TAPIS) / 100) + " €, 10 % de " + fEur(cave) + " €)";
+const injCourtM = (cave, j) => j.v === "R" && cave * 100 / j.jeton >= PLAF_TAPIS * gJ(j).m ? "injouable en Ultimate Roulette (ouverture minimale " + fEur(eurJ(U_MIN_R * gJ(j).m, j)) + " € > plafond " + fEur(Math.round(cave * 100 / PLAF_TAPIS) / 100) + " €, 10 % de " + fEur(cave) + " €)" : "injouable (mise minimale " + fEur(eurJ(gJ(j).m, j)) + " € > plafond " + fEur(Math.round(cave * 100 / PLAF_TAPIS) / 100) + " €, 10 % de " + fEur(cave) + " €)";
 function jouablesM(o, c, j) {
   const out = [];
   const ajoute = (o2, c2, jj, libelle, note) => {
@@ -2234,6 +2314,8 @@ function jouablesM(o, c, j) {
     const jj = { genre: "douzaine", cible: 1, jeton: j.jeton };
     if (depDe(j.dep) !== "normal")
       jj.dep = depDe(j.dep);
+    if (j.v === "R")
+      jj.v = "R";
     ajoute(o, c, jj, lib(o, c, jj), "mêmes chances que le tiers du cylindre (12/37) et même gain, mise minimale 1 jeton ; n'importe quelle douzaine");
   } else if ((j.genre === "plein" || j.genre === "carre") && nbPos(j) > 1) {
     for (let c2 = nbPos(j) - 1;c2 >= 1; c2--) {
@@ -2366,7 +2448,8 @@ function ficheConseilM(o, c, j) {
     injouable: inj
   };
 }
-function departsDe(o, c, j) {
+function departsDe(o, c, j, meth = METH) {
+  const R = j ? j.v === "R" : meth === "R";
   const us = {};
   const out = [];
   for (const d of DEPARTS) {
@@ -2384,7 +2467,9 @@ function departsDe(o, c, j) {
       S3 = eurJ(q.S3, jj);
       D = eurJ(q.D, jj);
     } else {
-      const s = nouvelle("Rouge", o, c, d.id), q = prm(s);
+      const s = nouvelle("Rouge", o, c, d.id), u0 = uniteDep(uniteDe(o, c), d.id);
+      s.u = R ? uniteR(u0) : u0;
+      const q = prm(s);
       u = s.u;
       S1 = q.S1;
       S2 = q.S2;
@@ -2393,9 +2478,21 @@ function departsDe(o, c, j) {
     }
     us[d.id] = u;
     let dispo = true, raison = "";
-    if (j && !jouableM(c, j)) {
+    if (j && !jouableM(c, j) && j.v === "R" && c * 100 / j.jeton >= PLAF_TAPIS * gJ(j).m) {
+      dispo = false;
+      raison = injouableM(c, j);
+    } else if (R && (!j || jouableM(c, j)) && objBloqueR(o, c, u, j)) {
+      dispo = false;
+      raison = objBloqueR(o, c, u, j);
+    } else if (j && !jouableM(c, j)) {
       dispo = false;
       raison = "Pas jouable avec ces réglages : mise minimale " + fEur(eurJ(gJ(j).m, j)) + " € > plafond " + fEur(Math.round(c * 100 / PLAF_TAPIS) / 100) + " € (10 % de " + fEur(c) + " €). Prends un jeton plus petit, une autre mise ou une cave plus grande (voir la fiche conseil).";
+    } else if (R && d.id !== "normal" && u === us.normal) {
+      dispo = false;
+      raison = "Pas possible en Ultimate Roulette : pour garder les crans de la fiche distincts, ce départ joue exactement comme le départ normal (ouverture " + fR(u, j)(10) + " €) — prends le départ normal.";
+    } else if (R && d.id === "moyen" && u === us.petit) {
+      dispo = false;
+      raison = "Même mise que le départ plus petit en Ultimate Roulette (ouverture " + fR(u, j)(10) + " €).";
     } else if (d.id !== "normal" && u === us.normal) {
       dispo = false;
       raison = "Pas possible avec ces réglages : le départ normal est déjà la plus petite mise (" + fEur(S1) + " €).";
@@ -2403,7 +2500,21 @@ function departsDe(o, c, j) {
       dispo = false;
       raison = "Même mise que le départ plus petit avec ces réglages.";
     }
-    out.push({ id: d.id, nom: d.nom, u, S1, S2, S3, D, dispo, raison });
+    let note = "";
+    if (R && dispo) {
+      const u0 = j ? uniteM(jeuDep({ ...j, v: undefined }, d.id), o, c) : uniteDep(uniteDe(o, c), d.id), f = fR(u, j), f0 = fR(u0, j);
+      if (u > u0)
+        note = "Mise de départ relevée de " + f0(10) + " € à " + f(10) + " € : en dessous, l'arrondi à la mise minimale confondrait les crans de la fiche (10 / 7 / 5 / 3 / 2 joués " + [10, 7, 5, 3, 2].map(f0).join(" / ") + " €).";
+      else if (u < u0)
+        note = "Mise de départ abaissée de " + f0(10) + " € à " + f(10) + " € : au-dessus, le plafond de 10 % du tapis écraserait les paliers de la fiche.";
+      const pl = j ? plafondRM(u, j, c) : "";
+      if (pl)
+        note += (note ? " " : "") + "Avec cette cave, " + pl + ".";
+      const mq = manqueRTxt(o, u, j);
+      if (mq)
+        note += (note ? " " : "") + mq.charAt(0).toUpperCase() + mq.slice(1) + ".";
+    }
+    out.push({ id: d.id, nom: d.nom, u, S1, S2, S3, D, dispo, raison, note });
   }
   return out;
 }
@@ -2784,7 +2895,7 @@ function dessinerFiche(f) {
   var e = f.ech, lock = enCours(), tr = function (a, b) { return '<tr><td>' + a + '</td><td>' + b + '</td></tr>'; };
   var h = '<h2>Fiche conseil</h2><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>+' + f.obj + ' € sur ' + f.cave + ' € · ' + nomDep(f.dep).toLowerCase() + (f.v22 ? ' · ' + labN(f.meth).toLowerCase().replace('version b', 'version B') : '') + '</b><br><span class="mini">ratio ' + (100 * f.ratio).toFixed(2).replace('.', ',') + ' % · 1 pour ' + fs2(f.unPour) + '</span></div><span class="' + cl(f.niveau) + '" id="ficheNiveau">' + f.niveau + '</span></div>';
   h += f.conseils.map(function (c) { return '<div class="conseil">' + esc(c) + '</div>'; }).join('');
-  if (f.v22 && f.meth === 'R') h += '<h3>Tes mises avec ce réglage (Ultimate Roulette, fiche V3)</h3><table>' + ficheRLignes(f.obj, f.cave, null, f.dep).map(function (r) { return tr(esc(r[0]), esc(r[1])); }).join('') + tr('Pertes d\'affilée encaissées', e.pertes + ' (la ' + (e.pertes + 1) + 'e vide la cave)') + '</table><div class="conseil">' + esc(rappelN('R', f.P, f.E)) + '</div>';
+  if (f.v22 && f.meth === 'R') h += '<h3>Tes mises avec ce réglage (Ultimate Roulette, fiche V3)</h3><table>' + ficheRLignes(f.obj, f.cave, null, f.dep).map(function (r) { return r[1].length > 42 ? '<tr><td colspan="2" style="white-space:normal;text-align:left">' + esc(r[0]) + ' : ' + esc(r[1]) + '</td></tr>' : tr(esc(r[0]), esc(r[1])); }).join('') + tr('Pertes d\'affilée encaissées', e.pertes + ' (la ' + (e.pertes + 1) + 'e vide la cave)') + '</table><div class="conseil">' + esc(rappelN('R', f.P, f.E)) + '</div>';
   else if (f.v22 && estV3(f.meth)) { var g3 = prm3({ cave: f.cave, u: e.u, v: f.meth });
     h += '<h3>Tes mises avec ce réglage (' + labN(f.meth).toLowerCase().replace('version b', 'version B') + ')</h3><table>' + tr('Unité u', e.u + ' €') + tr('Ouverture / P1 / P2 / P3', g3.O + ' / ' + g3.B1 + ' / ' + g3.B2 + ' / ' + g3.B3 + ' €') + tr('Pas d\'Alembert après une perte', '+' + g3.D + ' €') +
     tr('Paroli (2 coups tout le long)', f.meth === 'B' ? 'intégral partout' : 'intégral en P1 (verrou ' + g3.V + ' €), sécurisé P2 +' + g3.K2 + ' € / P3 +' + g3.K3 + ' €') + tr('Plafond de mise', g3.Cap + ' €') + (f.meth === 'B' ? tr('Attente / montée', g3.W + ' € après 3 pertes · +' + g3.M + ' € après 2 gains') : '') +
@@ -3023,7 +3134,7 @@ function dessinerFicheM(f) {
   if (f.injouable) return dessinerFicheInjouableM(f, lock, tr);
   var h = '<h2>Fiche conseil</h2><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>+' + f.obj + ' € sur ' + f.cave + ' € · ' + esc(f.nom) + ' · ' + nomDep(f.jeu.dep).toLowerCase() + '</b><br><span class="mini">jeton ' + nomJeton(f.jeu.jeton) + ' · ratio ' + (100 * f.ratio).toFixed(2).replace('.', ',') + ' % · 1 pour ' + fs2(f.unPour) + '</span></div><span class="' + cl(f.niveau) + '" id="ficheNiveau">' + f.niveau + '</span></div>';
   h += f.conseils.map(function (c) { return '<div class="conseil">' + esc(c) + '</div>'; }).join('');
-  if (f.jeu.v === 'R') h += '<h3>Tes mises avec ce réglage (Ultimate Roulette, fiche V3 transposée)</h3><table>' + ficheRLignes(f.obj, f.cave, f.jeu).map(function (r) { return tr(esc(r[0]), esc(r[1])); }).join('') + tr('Ratés d\'affilée encaissés', f.pertes + ' (visé : ' + f.cibleL + ')') + '</table><div class="conseil">' + esc(rappelN('R', f.P, f.E)) + '</div>';
+  if (f.jeu.v === 'R') h += '<h3>Tes mises avec ce réglage (Ultimate Roulette, fiche V3 transposée)</h3><table>' + ficheRLignes(f.obj, f.cave, f.jeu).map(function (r) { return r[1].length > 42 ? '<tr><td colspan="2" style="white-space:normal;text-align:left">' + esc(r[0]) + ' : ' + esc(r[1]) + '</td></tr>' : tr(esc(r[0]), esc(r[1])); }).join('') + tr('Ratés d\'affilée encaissés', f.pertes + ' (visé : ' + f.cibleL + ')') + '</table><div class="conseil">' + esc(rappelN('R', f.P, f.E)) + '</div>';
   else h += '<h3>Tes mises avec ce réglage</h3><table>' + tr('Unité u', fEur(f.u) + ' €') + tr('Paliers P1 / P2 / P3', fEur(f.S1) + ' / ' + fEur(f.S2) + ' / ' + fEur(f.S3) + ' €') + tr('Pas d\'Alembert après un raté', '+' + fEur(f.D) + ' €') +
     tr('Paroli (Paliers 1-2)', fEur(f.S1) + ' → ' + fEur(2 * f.S1) + ' → ' + fEur(4 * f.S1) + ' €') + tr('Paroli sécurisé (Palier 3)', fEur(f.secu[0]) + ' → ' + fEur(f.secu[1]) + ' → ' + fEur(f.secu[2]) + ' €') + tr('Filet (2 coups)', fEur(f.filet[0]) + ' → ' + fEur(f.filet[1]) + ' €') +
     tr('Seuils de bilan P2 / P3 / filet', '−' + fs2(f.T30) + ' / −' + fs2(f.T150) + ' / −' + fs2(f.T200) + ' €') + tr('Plafond par coup', '10 % du tapis (mise minimale ' + fEur(f.min) + ' €)') +
@@ -3200,6 +3311,7 @@ function lireBrouillon() {
   if ((g === 'plein' || g === 'carre') && selManque(g) > 0) e.sel = 'Choisis encore ' + selManque(g) + (g === 'plein' ? ' numéro' : ' carré') + (selManque(g) > 1 ? 's' : '') + ' (étape 2).';
   if (j && DEP_B !== 'normal') j.dep = DEP_B;
   if (j && methDe($('meth').value) === 'R') j.v = 'R';   // v13 : Repli progressif aussi pour les autres mises
+  if (!e.obj && !e.cave && !e.jeton && !e.sel && methDe($('meth').value) === 'R') { var mb = objBloqueRDe(o, c, j, DEP_B); if (mb) e.obj = mb; }   // v14 : Ultimate, objectif trop petit → bloqué
   return { obj: o, cave: c, genre: g, chance: $('mode').value, meth: methDe($('meth').value), dep: DEP_B, jeu: j, err: e, ok: !e.obj && !e.cave && !e.jeton && !e.sel };
 }
 function cleJeu(j) { return j ? j.genre + '/' + (j.genre === 'douzaine' ? j.cible : '') + '/' + j.jeton + '/' + (j.genre === 'plein' || j.genre === 'carre' ? posDe(j).slice().sort(function (a, b) { return a - b; }).join('-') : '') + '/' + depDe(j.dep) + (j.v === 'R' ? '/vR' : '') : 'simple'; }
@@ -3273,7 +3385,7 @@ function baseDep(o, c, j) { return o + '/' + c + '/' + (j ? cleJeu(jeuDep(j, 'no
 function majDeparts() {
   var s = etat(), b = lireBrouillon(), lock = enCours(), jS = estM(s) ? s.jeu : null;
   var o = b.ok ? b.obj : s.obj, c = b.ok ? b.cave : s.cave, j = b.ok ? b.jeu : jS;
-  var infos = departsDe(o, c, j), memeBase = baseDep(o, c, j) === baseDep(s.obj, s.cave, jS) && (!!j || b.meth === methDe(s.v));
+  var infos = departsDe(o, c, j, b.meth), memeBase = baseDep(o, c, j) === baseDep(s.obj, s.cave, jS) && (!!j || b.meth === methDe(s.v));
   var dispoB = infos.some(function (x) { return x.id === DEP_B && x.dispo; }); if (!dispoB && !lock) DEP_B = 'normal';
   var h = infos.map(function (x) {
     var mises = 'départ ' + fEur(x.S1) + ' € · paliers ' + fEur(x.S1) + ' / ' + fEur(x.S2) + ' / ' + fEur(x.S3) + ' €, +' + fEur(x.D) + ' € après une perte';
@@ -3286,7 +3398,7 @@ function majDeparts() {
     else if (statDepartPret(s.obj, s.cave, jS, x.id)) { var r = statDepart(s.obj, s.cave, jS, x.id); st = 'Réussite ' + pc(r.P) + ' · perte moyenne ' + eur2(r.E) + ' par session'; }
     else st = 'Réussite … · perte moyenne … (calcul…)';
     var on = x.id === DEP_B;
-    return '<button type="button" class="depbtn' + (on ? ' on' : '') + '" role="radio" aria-checked="' + on + '" data-dep="' + x.id + '"' + (lock || !x.dispo ? ' disabled' : '') + '><b>' + (on ? '◉ ' : '○ ') + x.nom + '</b><span class="dm">' + mises + '</span><span class="ds">' + esc(st) + '</span></button>';
+    return '<button type="button" class="depbtn' + (on ? ' on' : '') + '" role="radio" aria-checked="' + on + '" data-dep="' + x.id + '"' + (lock || !x.dispo ? ' disabled' : '') + '><b>' + (on ? '◉ ' : '○ ') + x.nom + '</b><span class="dm">' + mises + '</span><span class="ds">' + esc(st) + '</span>' + (x.dispo && x.note ? '<span class="dn">⚠ ' + esc(x.note) + '</span>' : '') + '</button>';
   }).join('');
   var el = $('departs'); if (el.getAttribute('data-h') !== h) { el.innerHTML = h; el.setAttribute('data-h', h);
     [].forEach.call(el.querySelectorAll('.depbtn'), function (bt) { bt.onclick = function () { if (enCours()) return; DEP_B = bt.getAttribute('data-dep'); majDeparts(); majEtatReglages(); }; }); }
