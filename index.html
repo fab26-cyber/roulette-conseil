@@ -3437,7 +3437,7 @@ const CINQ_LIGNES_A = [
 const POURQUOI_A = "suis la carte « Ta prochaine mise » : la mise suit ce qui manque pour l'objectif (au plus 20 % de la cave, sans descendre sous le plancher −50 % de la cave, puis 1 € au plancher), et STOP dès que l'objectif est atteint ; sinon l'heure s'arrête au 70e coup. Le bot de cet encart vise lui aussi l'objectif au plus vite et s'arrête dès qu'il est atteint.";
 const RAPPEL_A = "L'avantage reste au casino : en moyenne tu perds 1,35 % de tout ce que tu mises (chances simples avec La Partage). S'arrêter à l'objectif ne change pas cet avantage ; aucune méthode ne bat le zéro.";
 // ===== FIN MÉTHODE BOT 1 H =====
-// ===== v22 : RADAR SÉRIES, clé interne "D" — fiche « Roulette Française V4 : Radar Multi-Chances, Tampon D'Alembert & Paroli de Série » (20/11) =====
+// ===== v22 (v23 : plafond « ce qui manque ») : RADAR SÉRIES, clé interne "D" — fiche « Roulette Française V4 : Radar Multi-Chances, Tampon D'Alembert & Paroli de Série » (20/11) =====
 // Chances simples La Partage seulement. Le moteur compte en jetons (comme les autres versions) ; « pas » p = 1/10 de l'objectif arrondi au jeton (au moins 1 jeton).
 // Base B : départ 2p, +1p après un échec (Palier 1 ou 2), plafond 8p ; après une victoire au Palier 2 : −2p (min 2p) si le bilan APRÈS la victoire est < 0.
 // À +10 € / 300 € avec le jeton de 1 € : p = 1 €, B = 2 € → 8 € (fiche). Radar : doublet sur les 2 derniers numéros d'une paire ; plusieurs doublets → la paire
@@ -3490,10 +3490,13 @@ function nouvelleD(chance, obj, cave) {
   return s;
 }
 // Mise théorique et chance, sans texte : { mise, chance, pal } (pal 0 = observation)
+// v23 : même plafond que les autres versions : jamais plus que ce qui manque pour l'objectif (arrondi au jeton supérieur), ni que le reste de la cave.
+const manqueD = (s) => Math.ceil(s.obj - s.bilan - 0.000000001);
+const resteD = (s) => Math.floor(s.cave + s.bilan + 0.000000001);
 function choixD(s) {
   if (s.fin || s.bilan >= s.obj)
     return { mise: 0, chance: "", pal: 0, r: null };
-  const reste = Math.floor(s.cave + s.bilan + 0.000000001);
+  const reste = Math.min(manqueD(s), resteD(s));
   if (s.pal === 2)
     return { mise: Math.min(2 * s.rm, reste), chance: s.rc, pal: 2, r: null };
   if (s.pal === 3)   // verrou après une victoire au Palier 2 : Palier 1 sur la même chance
@@ -3555,10 +3558,11 @@ function conseilD(s0) {
     etat = "Doublet " + c.chance + " – " + c.chance + " détecté (" + D_ORDRE[c.r.f] + ") : Palier 1 = B, on mise la continuation" + ici;
   else
     etat = (s.rd.length && s.rd[s.rd.length - 1] === 0 ? "Zéro : il casse tous les doublets" : s.rd.length < 2 ? "Radar : il faut 2 numéros pour voir un doublet" : "Aucun doublet sur les 3 paires (alternance)") + " → observation, mise 0 €" + ici;
-  const reste = Math.floor(s.cave + s.bilan + 0.000000001), theo = c.pal === 2 ? 2 * s.rm : c.pal === 1 ? B : 0;
+  const manque = manqueD(s), reste = resteD(s), theo = c.pal === 2 ? 2 * s.rm : c.pal === 1 ? B : 0;
+  let note = "";   // v23 : plafond affiché comme dans les autres versions (« plafond : il manque … »)
   if (c.mise > 0 && c.mise < theo)
-    etat += " · mise limitée au tapis (" + reste + " €)";
-  return { mise: c.mise, chance: c.chance, etat, note: "", pal: c.pal };
+    note = c.mise === manque ? "plafond : il manque " + manque + " € pour +" + s.obj + " €" : "plafond : il reste " + reste + " € dans la cave";
+  return { mise: c.mise, chance: c.chance, etat, note, pal: c.pal };
 }
 function jouerD(s0, x) {
   const s = norm(s0);
@@ -3617,7 +3621,7 @@ function mcDMorceau(obj, cave, k0, k1, acc, trace) {
     const al = aleaD(D_MC_GRAINE + k);
     let bilan = 0, B = b0, pal = 0, rf = 0, rv = 0, rm = 0, n = 0, coups = 0, nO = 0, mis = 0, bas = 0, maxm = 0, fin = inj ? 2 : 0;
     while (!fin && coups < D_MC_MAXCOUPS) {
-      const x = Math.floor(al() * 37), S = D_SENS[x], reste = Math.floor(cave + bilan + 0.000000001);
+      const x = Math.floor(al() * 37), S = D_SENS[x], reste = Math.min(Math.ceil(obj - bilan - 0.000000001), Math.floor(cave + bilan + 0.000000001));   // v23 : plafond manque
       let m = 0, f = -1, v = 0, pj = 0;
       if (pal === 2) { m = Math.min(2 * rm, reste); f = rf; v = rv; pj = 2; }
       else if (pal === 3) { m = Math.min(B, reste); f = rf; v = rv; pj = 1; }
@@ -3713,7 +3717,7 @@ const POINTS_D = [
   ["Palier 1 et Paroli", "Palier 1 = B ; gagné → Palier 2 = 2 × B sur la même chance (mise + gain) ; gagné → victoire +3 B net ; perdu au Palier 2 → perte nette B."],
   ["Base B (tampon D'Alembert)", "départ 2 €, +1 € après chaque échec (Palier 1 ou 2), plafond 8 € ; après une victoire au Palier 2 : −2 € (minimum 2 €) si le bilan reste sous 0 €."],
   ["Zéro", "La Partage : la moitié de la mise est rendue ; au Palier 1, B inchangé ; au Palier 2, retour au Palier 1 ; le 0 casse tous les doublets."],
-  ["Arrêt", "STOP dès que le bilan atteint ou dépasse l'objectif (+10 €), sans exception ; cave (300 €) sans recharge : fin si le tapis est vide."]
+  ["Arrêt", "jamais plus que ce qui manque pour l'objectif (le Palier 1 ou le Palier 2 est alors plafonné), ni que le reste de la cave ; STOP dès que le bilan atteint ou dépasse l'objectif (+10 €), sans exception ; cave (300 €) sans recharge : fin si le tapis est vide."]
 ];
 const RAPPEL_D = "L'avantage reste au casino : en moyenne tu perds 1,35 % de tout ce que tu mises (chances simples avec La Partage). Le radar et les observations ne changent pas cet avantage : chaque numéro est indépendant des précédents, aucune méthode ne bat le zéro.";
 function departsD(o, c) {
@@ -3721,13 +3725,13 @@ function departsD(o, c) {
   return DEPARTS.map((d) => ({ id: d.id, nom: d.nom, u: e.p, S1: e.B0, S2: 0, S3: 0, D: 0, dispo: d.id === "normal", raison: d.id === "normal" ? "" : "Pas de départ réduit en " + nomD + " : la base B part de 2 pas (1 pas = 1/10 de l'objectif) — prends le départ normal.", note: "" }));
 }
 // ===== FIN RADAR SÉRIES =====
-// v22 : Monte-Carlo Radar séries pré-calculé (1 000 000 de sessions, graine fixe, MÊME fonction mcDMorceau) pour le réglage de la fiche (+10 € / 300 €) avec chaque jeton ;
-// les autres réglages sont calculés dans l'appli (mêmes résultats : la graine est fixe). Contrôle : preuves/radar/pre_mc.log.
-MC_D["10/300/1000000"] = {"n":1000000,"P":0.937817,"Pcave":0.062183,"Ptronq":0,"E":-6.1993195,"mis":460.631318,"coups":70.539068,"obs":0.19915480028740953,"bas":-44.450564,"max":16,"pire":-300,"hist":{"20":190577,"21":13309,"22":149583,"23":13190,"24":123308,"25":10346,"26":118339,"27":10599,"28":32405,"29":12592,"30":49451,"31":6385,"32":61001,"33":6552,"34":19480,"35":6200,"36":31820,"37":3998,"38":26709,"39":3217,"40":4995,"41":1905,"42":5593,"43":1754,"44":16440,"45":996,"46":3127,"47":880,"48":6364,"49":926,"50":4635,"51":1141,"-600":35070,"-599":27113},"ecartP":0.0004733157510177086};
-MC_D["50/1500/1000000"] = {"n":1000000,"P":0.937843,"Pcave":0.062157,"Ptronq":0,"E":-31.0099815,"mis":2304.676477,"coups":70.589838,"obs":0.1991376294134575,"bas":-222.3065765,"max":80,"pire":-1500,"hist":{"100":190559,"102":17,"105":13286,"107":19,"108":1,"110":149576,"112":19,"115":13178,"117":24,"120":123290,"122":9,"125":10336,"127":7,"130":118330,"132":17,"133":2,"135":10592,"137":4,"138":1,"140":32393,"142":5,"145":12581,"147":13,"150":49449,"152":8,"155":6380,"157":13,"160":60995,"162":9,"165":6547,"167":5,"168":1,"170":19475,"172":3,"175":6195,"177":5,"180":31818,"182":5,"185":3997,"187":1,"190":26707,"192":2,"195":3214,"197":2,"200":4995,"202":1,"205":1903,"207":2,"210":5591,"212":1,"215":1751,"217":2,"220":16437,"222":1,"225":995,"230":3123,"232":3,"235":879,"240":6363,"242":2,"245":924,"250":4634,"252":3,"255":1141,"257":2,"-3000":35148,"-2999":27009},"ecartP":0.0004732233487895559};
-MC_D["20/600/1000000"] = {"n":1000000,"P":0.937848,"Pcave":0.062152,"Ptronq":0,"E":-12.4059965,"mis":922.08519,"coups":70.603048,"obs":0.19912998656941835,"bas":-88.9275835,"max":32,"pire":-600,"hist":{"40":190575,"42":13312,"44":149588,"46":13198,"48":123316,"50":10346,"52":118337,"54":10609,"56":32398,"58":12588,"60":49452,"62":6387,"64":61008,"65":1,"66":6555,"68":19480,"70":6197,"72":31824,"74":4003,"76":26708,"78":3215,"80":4998,"82":1905,"83":1,"84":5592,"86":1752,"88":16436,"90":995,"92":3123,"94":881,"96":6364,"97":1,"98":926,"100":4634,"102":1143,"-1200":61334,"-1199":818},"ecartP":0.00047320557643256225};
-MC_D["5/150/1000000"] = {"n":1000000,"P":0.943265,"Pcave":0.056735,"Ptronq":0,"E":-1.641092,"mis":124.085848,"coups":21.88496,"obs":0.25698543657379314,"bas":-21.3260005,"max":16,"pire":-150,"hist":{"10":46302,"11":14034,"12":354084,"13":3857,"14":328439,"15":4853,"16":46237,"17":6147,"18":12902,"19":4797,"20":50629,"21":3018,"22":10545,"23":2569,"24":12707,"25":2596,"26":3689,"27":1730,"28":3611,"29":1451,"30":14351,"31":691,"32":2564,"33":942,"34":1163,"35":508,"36":7114,"37":564,"38":411,"39":174,"40":418,"41":168,"-300":41678,"-299":15057},"ecartP":0.00045341769105278624};
-MC_D["2/60/1000000"] = {"n":1000000,"P":0.931062,"Pcave":0.068938,"Ptronq":0,"E":-0.422033,"mis":30.349869,"coups":8.252674,"obs":0.3949607121279721,"bas":-9.209063,"max":16,"pire":-60,"hist":{"4":502071,"5":2929,"6":19999,"7":3166,"8":54386,"9":3660,"10":13959,"11":6378,"12":73254,"13":685,"14":210169,"15":1196,"16":22605,"17":723,"18":2202,"19":555,"20":4263,"21":421,"22":1480,"23":450,"24":4054,"25":448,"26":563,"27":250,"28":158,"29":129,"30":93,"31":23,"32":501,"33":12,"34":232,"35":48,"-120":60275,"-119":8663},"ecartP":0.0004965634069909801};
+// v23 : Monte-Carlo Radar séries pré-calculé (1 000 000 de sessions, graine fixe, MÊME fonction mcDMorceau, plafond « ce qui manque » inclus) pour le réglage de la fiche (+10 € / 300 €) avec chaque jeton ;
+// les autres réglages sont calculés dans l'appli (mêmes résultats : la graine est fixe). Contrôle : preuves/v23/gen_mc_pre23.log.
+MC_D["10/300/1000000"] = {"n":1000000,"P":0.951887,"Pcave":0.048113,"Ptronq":0,"E":-4.856596,"mis":357.206483,"coups":56.992107,"obs":0.2054209717145569,"bas":-36.628575,"max":16,"pire":-300,"hist":{"20":855836,"21":96051,"-600":27296,"-599":20817},"ecartP":0.00041944979636401};
+MC_D["50/1500/1000000"] = {"n":1000000,"P":0.952074,"Pcave":0.047926,"Ptronq":0,"E":-24.2267555,"mis":1780.482705,"coups":56.862634,"obs":0.20550017081516134,"bas":-182.7897395,"max":80,"pire":-1500,"hist":{"100":855634,"101":96440,"-3000":27277,"-2999":20649},"ecartP":0.0004186749871795525};
+MC_D["20/600/1000000"] = {"n":1000000,"P":0.952109,"Pcave":0.047891,"Ptronq":0,"E":-9.69067,"mis":711.727672,"coups":56.820508,"obs":0.20552396328452396,"bas":-73.0843315,"max":32,"pire":-600,"hist":{"40":949297,"41":2812,"-1200":47203,"-1199":688},"ecartP":0.00041852977440123715};
+MC_D["5/150/1000000"] = {"n":1000000,"P":0.959702,"Pcave":0.040298,"Ptronq":0,"E":-1.2078955,"mis":90.59326,"coups":17.972368,"obs":0.2754515709894211,"bas":-16.7538765,"max":16,"pire":-150,"hist":{"10":894409,"11":65293,"-300":29002,"-299":11296},"ecartP":0.00038544819613866844};
+MC_D["2/60/1000000"] = {"n":1000000,"P":0.963074,"Pcave":0.036926,"Ptronq":0,"E":-0.27183,"mis":18.337363,"coups":7.142912,"obs":0.43069745224356676,"bas":-5.9766445,"max":16,"pire":-60,"hist":{"4":933428,"5":29646,"-120":31408,"-119":5518},"ecartP":0.000369617081267896};
 
 // ===== INTERFACE (fichier HTML autonome) =====
 var CLE_S = 'roulette_v3_session';   // ancienne sauvegarde (v17 et avant) : reprise une fois puis remplacée
@@ -4119,7 +4123,7 @@ function rendreAvecD(s) {
   else if (!c.mise) el.innerHTML = '<div class="lab">' + nomD + ' · ' + (s.coups ? 'Coup n° ' + (s.coups + 1) : 'Premier coup') + ' · objectif +' + s.obj + ' € · cave ' + s.cave + ' €</div><div class="mise">Observation : 0 €</div><div class="etat">' + esc(c.etat) + '</div><div class="note">Ne mise pas : regarde le coup et touche le numéro sorti.</div><div class="note" style="opacity:.9">' + esc(rappelD(st)) + '</div>';
   else {
     var cc = c.chance === 'Rouge' ? 'ch-Rouge' : (c.chance === 'Noir' ? 'ch-Noir' : 'ch-autre');
-    el.innerHTML = '<div class="lab">' + nomD + ' · ' + (s.coups ? 'Coup n° ' + (s.coups + 1) : 'Premier coup') + ' · Palier ' + c.pal + ' · objectif +' + s.obj + ' € · cave ' + s.cave + ' €</div><div class="mise">Mise : ' + c.mise + ' € <span style="font-size:24px">sur</span> <span class="ch ' + cc + '">' + c.chance + '</span></div><div class="etat">' + esc(c.etat) + '</div><div class="note" style="opacity:.9">' + esc(rappelD(st)) + '</div>';
+    el.innerHTML = '<div class="lab">' + nomD + ' · ' + (s.coups ? 'Coup n° ' + (s.coups + 1) : 'Premier coup') + ' · Palier ' + c.pal + ' · objectif +' + s.obj + ' € · cave ' + s.cave + ' €</div><div class="mise">Mise : ' + c.mise + ' € <span style="font-size:24px">sur</span> <span class="ch ' + cc + '">' + c.chance + '</span></div><div class="etat">' + esc(c.etat) + '</div>' + (c.note ? '<div class="note">' + esc(c.note) + ' (' + nomD + ')</div>' : '') + '<div class="note" style="opacity:.9">' + esc(rappelD(st)) + '</div>';   // v23 : plafond affiché comme les autres versions
   }
   var lo = -s.cave, hi = s.obj, pos = function (v) { return (100 * (v - lo) / (hi - lo)).toFixed(2) + '%'; };
   var j = ''; [[lo, '−' + fJS(s.cave)], [0, '0'], [hi, '+' + fJS(s.obj)]].forEach(function (m) { j += '<div class="tk" style="left:' + pos(m[0]) + '"></div><div class="mk" style="left:' + pos(m[0]) + '">' + m[1] + '</div>'; });
