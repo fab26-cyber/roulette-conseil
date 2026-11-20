@@ -115,12 +115,12 @@ html{overflow-anchor:none}
 <div class="carte" id="reglages"><h2 id="reglTitre">Réglages de la session</h2>
 <div id="rLock" class="verrou" style="display:none"></div>
 <div class="etape"><div class="et-t"><span class="num">1</span>Objectif, cave et jeton</div>
-<div class="regl"><label for="pObj">Objectif (€)<input id="pObj" autocomplete="off" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done" value="10"></label>
-<label for="pCave">Cave = stop-loss (€)<input id="pCave" autocomplete="off" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done" value="300"></label></div>
-<div class="mini" style="font-size:13px;opacity:.85">Objectif 1 à 200 € · cave 50 à 2000 € · euros entiers. Rien ne change avant « Valider ».</div>
+<div class="regl"><label for="pObj">Objectif (€)<input id="pObj" autocomplete="off" type="text" inputmode="decimal" enterkeyhint="done" value="10"></label>
+<label for="pCave">Cave = stop-loss (€)<input id="pCave" autocomplete="off" type="text" inputmode="decimal" enterkeyhint="done" value="300"></label></div>
+<div class="mini" id="noteLim" style="font-size:13px;opacity:.85">Objectif 1 à 200 € · cave 50 à 2000 € · multiples du jeton (1 €). Rien ne change avant « Valider ».</div>
 <div class="ferr" id="eObj"></div><div class="ferr" id="eCave"></div>
-<label id="lJeton" class="lab" style="display:none">Valeur du jeton
-<select id="jeton" autocomplete="off"><option value="10">0,10 €</option><option value="50">0,50 €</option><option value="100" selected>1 €</option></select></label>
+<label id="lJeton" class="lab">Valeur du jeton (toutes les versions) : mise minimale = 1 jeton, chaque mise est un multiple du jeton
+<select id="jeton" autocomplete="off"><option value="10">0,10 € (autres mises)</option><option value="20">0,20 €</option><option value="50">0,50 €</option><option value="100" selected>1 €</option><option value="200">2 €</option><option value="500">5 €</option><option value="1000">10 €</option></select></label>
 <div class="ferr" id="eJeton"></div></div>
 <div class="etape"><div class="et-t"><span class="num">2</span>Type de mise et sélection</div>
 <label class="lab">Type de mise (toute la session)
@@ -130,8 +130,8 @@ html{overflow-anchor:none}
 <label id="lCJ" class="lab">Chance jouée (toute la session)
 <select id="cj" autocomplete="off"><option value="fixe" selected>Fixe (ma chance choisie)</option><option value="bascule">Bascule miroir (fiche du 10/11) : après 2 pertes d'affilée, je mise ce qui sort</option><option value="coup">Miroir coup par coup : je mise ce qui vient de sortir</option></select></label>
 <label id="lMeth" class="lab">Méthode (toute la session)
-<select id="meth" autocomplete="off"><option value="2.1">Méthode v2.1 (paliers 10 / 15 / 30 €)</option><option value="2.2">Méthode v2.2 (ouverture 10 €, paliers 7 / 15 / 30 €)</option><option value="3">Méthode v3 complète (Paroli 2 coups, max 60 €)</option><option value="B">Version B (attente / montée, max 60 €)</option><option value="R">Ultimate Roulette (fiche V3 : repli 10 / 7 / 5 / 3 / 2 €, verrou, Paroli jusqu'à 5 paliers)</option><option value="U">Ultimate+ (stop zone B) : comme Ultimate Roulette, mais la session s'arrête au 20e coup joué en zone B</option><option value="A">Méthode bot 1 h : 70 coups, mise = ce qui manque (max 20 % de la cave) jusqu'au plancher −50 % de la cave, puis 1 €</option></select></label>
-<div class="mini" id="noteMeth" style="margin-top:4px">v2.1 par défaut. v2.2 (fiche du 18/11) : Palier 1 amorti à 7 €, verrou positif, Paroli sécurisé 20 → 30 → 50 € en Palier 2. v3 complète : toutes les idées de la v2.2 (paliers, +5, réserve, verrou, filet, reset) avec un Paroli à 2 coups tout le long et jamais plus de 60 € (à +50 € / 300 €). Version B : Paroli 2 coups doublé, mise d&#39;attente 5 € après 3 pertes d&#39;affilée, +10 € après 2 gains d&#39;affilée, jamais plus de 60 €. v2.2, v3 complète et B : chances simples seulement. Ultimate Roulette (Paroli à repli progressif, fiche V3 du 18/11) : 10 € à l&#39;ouverture, repli 7 / 5 / 3 / 2 € après des pertes d&#39;affilée (5 / 3 / 2 € quand le bilan est sous −25 €), après une perte jamais plus que la mise perdue (verrou, 2 € minimum), Paroli en escalier avec réserve (jusqu&#39;à 2 → 4 → 6 → 10 → 18 € sous −25 €), reprise 5 € et reset ; disponible aussi pour tiers, douzaine, carrés et pleins (transposition déclarée) ; mise de départ jamais sous 5 mises minimales (ni 8), relevée si besoin et signalée, pour que les crans restent distincts. Ultimate+ (stop zone B, 19/11) : Ultimate Roulette à l&#39;identique, plus un arrêt au 20e coup terminé en zone B dans la session (compte cumulé) ; disponible aussi pour les autres mises. Méthode bot 1 h (19/11) : on joue les 70 coups ; sous l&#39;objectif, mise = ce qui manque (au plus 20 % de la cave, jamais sous −50 % de la cave), objectif ou plancher atteint : 1 € ; chances simples seulement. L&#39;avantage reste au casino avec toutes : 1,35 % de chaque mise sur chances simples avec La Partage, 2,70 % sur les autres mises.</div>
+<select id="meth" autocomplete="off"><option value="2.1">Méthode v2.1 (paliers 10 / 15 / 30 €)</option><option value="2.2">Méthode v2.2 (ouverture 10 €, paliers 7 / 15 / 30 €)</option><option value="3">Méthode v3 complète (Paroli 2 coups, max 60 €)</option><option value="B">Version B (attente / montée, max 60 €)</option><option value="R">Ultimate Roulette (fiche V3 : repli 10 / 7 / 5 / 3 / 2 €, verrou, Paroli jusqu'à 5 paliers)</option><option value="U">Ultimate+ (stop zone B) : comme Ultimate Roulette, mais la session s'arrête au 20e coup joué en zone B</option><option value="A">Méthode bot 1 h : STOP à l'objectif, sinon 70 coups ; mise = ce qui manque (max 20 % de la cave) jusqu'au plancher −50 % de la cave, puis 1 €</option></select></label>
+<div class="mini" id="noteMeth" style="margin-top:4px">v2.1 par défaut. v2.2 (fiche du 18/11) : Palier 1 amorti à 7 €, verrou positif, Paroli sécurisé 20 → 30 → 50 € en Palier 2. v3 complète : toutes les idées de la v2.2 (paliers, +5, réserve, verrou, filet, reset) avec un Paroli à 2 coups tout le long et jamais plus de 60 € (à +50 € / 300 €). Version B : Paroli 2 coups doublé, mise d&#39;attente 5 € après 3 pertes d&#39;affilée, +10 € après 2 gains d&#39;affilée, jamais plus de 60 €. v2.2, v3 complète et B : chances simples seulement. Ultimate Roulette (Paroli à repli progressif, fiche V3 du 18/11) : 10 € à l&#39;ouverture, repli 7 / 5 / 3 / 2 € après des pertes d&#39;affilée (5 / 3 / 2 € quand le bilan est sous −25 €), après une perte jamais plus que la mise perdue (verrou, 2 € minimum), Paroli en escalier avec réserve (jusqu&#39;à 2 → 4 → 6 → 10 → 18 € sous −25 €), reprise 5 € et reset ; disponible aussi pour tiers, douzaine, carrés et pleins (transposition déclarée) ; mise de départ jamais sous 5 mises minimales (ni 8), relevée si besoin et signalée, pour que les crans restent distincts. Ultimate+ (stop zone B, 19/11) : Ultimate Roulette à l&#39;identique, plus un arrêt au 20e coup terminé en zone B dans la session (compte cumulé) ; disponible aussi pour les autres mises. Méthode bot 1 h (19/11) : 70 coups au plus et STOP dès l&#39;objectif atteint ; sous l&#39;objectif, mise = ce qui manque (au plus 20 % de la cave, jamais sous −50 % de la cave), plancher atteint : 1 € ; chances simples seulement. L&#39;avantage reste au casino avec toutes : 1,35 % de chaque mise sur chances simples avec La Partage, 2,70 % sur les autres mises.</div>
 <div class="mini" id="noteA" style="margin-top:6px"></div>
 <label id="lCible" class="lab" style="display:none"><span id="tCible">Ta cible</span>
 <select id="cible" autocomplete="off"></select></label>
@@ -178,6 +178,7 @@ html{overflow-anchor:none}
 const ROUGES = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
 const OBJ_DEF = 10, CAVE_DEF = 300;
 let METH = "2.1";
+var JS = 1;   // v20 : valeur du jeton en € pour les chances simples (le moteur compte en jetons) ; 1 = jeton de 1 €, comportement v19
 const methDe = (v) => v === "2.2" || v === "3" || v === "B" || v === "R" || v === "A" || v === "U" ? v : "2.1";
 const fe = (v) => String(v).replace(".", ",").replace("-", "−");
 const fs2 = (v) => fe(Math.round(v * 100) / 100);
@@ -1899,7 +1900,7 @@ function plusSurs(obj, cave, base, dep = "normal") {
   return out.slice(0, 3);
 }
 const fp = (p) => (100 * p).toFixed(2).replace(".", ",") + " %";
-const fm = (v) => Math.abs(Math.round(v * 100) / 100).toFixed(2).replace(".", ",") + " €";
+const fm = (v) => JS !== 1 ? Math.abs(Math.round(v * JS * 100) / 100).toFixed(2).replace(".", ",") + "\u2009€" : Math.abs(Math.round(v * 100) / 100).toFixed(2).replace(".", ",") + " €";   // v20 : déjà en € (espace fine = non reconverti)
 function ficheConseil(obj, cave, dep = "normal") {
   const t0 = Date.now();
   const r = resume(obj, cave, dep), ech0 = echelleDe(obj, cave, dep), at = attentes(obj, cave, dep);
@@ -2624,7 +2625,7 @@ function dpCacheM(o, c, j, avecLoi = true) {
   return CACHE_M[k];
 }
 const jetonOk = (cave, j) => cave * 100 / j.jeton <= MAX_JETONS;
-const nomJeton = (j) => j === 100 ? "1 €" : j === 50 ? "0,50 €" : "0,10 €";
+const nomJeton = (j) => fEur(j / 100) + " €";   // v20 : 0,10 / 0,20 / 0,50 / 1 / 2 / 5 / 10 €
 function resumeM(o, c, j) {
   const d = dpCacheM(o, c, j, false);
   return { niveau: niveauDe(d.P[0]), P: d.P[0], E: d.E[0], F: d.F[0], Pcave: j.v === "U" ? Math.max(0, 1 - d.P[0] - d.Z[0]) : 1 - d.P[0], ...j.v === "U" ? { Pzb: d.Z[0] } : {} };
@@ -3119,8 +3120,8 @@ function methodeNeg(o, c, j, chance, dep, nums, t) {
 const BOT_H_OPT = [30, 50, 70, 100, 150];
 
 // ===== v17 : MÉTHODE BOT 1 H, clé interne "A" — chances simples seulement (étude methode-bot/tenir-1h du 19/11) =====
-// Règle : sous l'objectif, mise = min(ce qui manque, 20 % de la cave, ce qui reste avant le plancher −50 % de la cave) ; objectif atteint ou plancher : 1 € ;
-// toujours au plus le tapis. On joue les 70 coups (1 h) : fin au 70e coup (objectif atteint ou non) ; cave vide seulement si le tapis passe sous 1 €.
+// Règle : sous l'objectif, mise = min(ce qui manque, 20 % de la cave, ce qui reste avant le plancher −50 % de la cave) ; plancher : 1 € ;
+// toujours au plus le tapis. v20 : STOP dès que l'objectif est atteint (plus aucune mise) ; sinon fin au 70e coup (1 h) ; cave vide si le tapis passe sous 1 €.
 const A_CAP = 0.2, A_RES = 0.5, A_N = 70, nomA = "Méthode bot 1 h";
 const plafondA = (cave) => Math.floor(cave * A_CAP + 0.000000001);
 const risqueA = (cave) => Math.floor(cave * A_RES + 0.000000001);   // plancher = −risqueA(cave) : au plancher on ne mise plus que 1 €
@@ -3140,10 +3141,11 @@ function conseilA(s0) {
   const s = norm(s0);
   if (s.fin)
     return { mise: 0, chance: s.chance, etat: s.fin, note: "" };
+  if (s.bilan >= s.obj)
+    return { mise: 0, chance: s.chance, etat: "Objectif +" + s.obj + " € atteint : STOP, ne mise plus", note: "" };   // v20
   const cap = plafondA(s.cave), R = risqueA(s.cave), manque = Math.ceil(s.obj - s.bilan - 0.000000001), reste = Math.floor(s.cave + s.bilan + 0.000000001);
   const dispo = Math.floor(R + s.bilan + 0.000000001), mise = miseA(s), ici = " (coup " + ((s.nA || 0) + 1) + " / " + A_N + ")";
-  const etat = s.bilan >= s.obj ? "Objectif +" + s.obj + " € atteint : mise minimale 1 € jusqu'au 70e coup" + ici
-    : dispo < 1 ? "Plancher −" + R + " € atteint (moitié de la cave) : mise minimale 1 € jusqu'au 70e coup" + ici
+  const etat = dispo < 1 ? "Plancher −" + R + " € atteint (moitié de la cave) : mise minimale 1 € jusqu'au 70e coup" + ici
     : mise === manque ? "Mise = ce qui manque pour +" + s.obj + " € (" + manque + " €)" + ici
     : mise === cap ? "Mise = plafond " + cap + " € (20 % de la cave) ; il manque encore " + fs2(s.obj - s.bilan) + " €" + ici
     : mise === dispo ? "Mise = " + dispo + " € : jamais sous le plancher −" + R + " € (moitié de la cave)" + ici
@@ -3156,21 +3158,27 @@ function miseA(s) {
     return 0;
   const reste = Math.floor(s.cave + s.bilan + 0.000000001);
   if (s.bilan >= s.obj)
-    return Math.min(1, reste);
+    return 0;   // v20 : objectif atteint → STOP (état jamais atteint hors fin)
   const m = Math.min(Math.ceil(s.obj - s.bilan - 0.000000001), plafondA(s.cave), Math.floor(risqueA(s.cave) + s.bilan + 0.000000001));
   return Math.min(Math.max(m, 1), reste);
 }
 function pasA(s, x) {
   const b = miseA(s);
+  if (!s.fin && s.bilan >= s.obj)
+    return { ...s, fin: "OBJECTIF" };   // v20
   if (s.fin || b < 1)
     return s.fin ? s : { ...s, fin: "CAVE_VIDE" };
   const bilan = s.bilan + (x === 0 ? -b / 2 : gagne(s.chanceFixe, x) ? b : -b), nA = (s.nA || 0) + 1;
-  const fin = Math.floor(s.cave + bilan + 0.000000001) < 1 ? "CAVE_VIDE" : nA >= A_N ? (bilan >= s.obj ? "OBJECTIF" : "HEURE") : "";
+  const fin = Math.floor(s.cave + bilan + 0.000000001) < 1 ? "CAVE_VIDE" : bilan >= s.obj ? "OBJECTIF" : nA >= A_N ? "HEURE" : "";   // v20 : STOP dès l'objectif
   return { v: "A", obj: s.obj, cave: s.cave, u: s.u, chance: s.chanceFixe, chanceFixe: s.chanceFixe, mode: "fixe", bilan, nA, fin, coups: 0, serie: 0, reserve: 0, reserveTotal: 0, plus5: false, etape: 0, paroliMise: 0, perdue: 0, zone: "", mise1: 0 };
 }
 function jouerA(s0, x) {
   const s = norm(s0);
   const c = conseilA(s);
+  if (!s.fin && s.bilan >= s.obj) {   // v20 (sécurité) : objectif déjà atteint → STOP, aucun coup
+    s.fin = "OBJECTIF";
+    return { etat: s, ligne: null };
+  }
   if (s.fin || c.mise < 1) {
     s.fin = s.fin || "CAVE_VIDE";
     return { etat: s, ligne: null };
@@ -3196,10 +3204,10 @@ function jouerA(s0, x) {
     s.fin = "CAVE_VIDE";
     action = "Cave vide : fin de session, ne recharge pas";
     regles.push(nomA + " : cave vide (stop-loss −" + s.cave + " €) → fin de session, on ne recharge pas");
-  } else if (s.nA >= A_N && s.bilan >= s.obj) {
+  } else if (s.bilan >= s.obj) {
     s.fin = "OBJECTIF";
-    action = "STOP : 70 coups joués, objectif +" + s.obj + " € atteint, encaisse et arrête";
-    regles.push(nomA + " : 70 coups joués (1 h) avec le bilan au-dessus de l'objectif → on arrête, on encaisse");
+    action = "STOP : objectif +" + s.obj + " € atteint au coup " + s.nA + " / " + A_N + ", encaisse et arrête";
+    regles.push(nomA + " : objectif atteint → STOP, on encaisse et on ne mise plus (v20)");
   } else if (s.nA >= A_N) {
     s.fin = "HEURE";
     action = "70 coups joués : fin de l'heure, on s'arrête sur ce bilan";
@@ -3388,26 +3396,46 @@ function statsNA(dp, s, N) {
 }
 const pCaveA = (dp, cave) => { const L = loiA(dp, 0); let t = 0; L.v.forEach((x, m) => { if (cave + x < 1) t += L.p[m]; }); return t; };
 function rappelA(P, E) {
-  return nomA + " : elle choisit seulement le montant. L'avantage reste au casino : tu perds en moyenne 1,35 % de tout ce que tu mises (chances simples, La Partage) — calcul exact pour tes réglages (70 coups) : finir l'heure à l'objectif " + fp(P) + ", résultat moyen −" + fm(E) + " par session.";
+  return nomA + " : elle choisit seulement le montant. L'avantage reste au casino : tu perds en moyenne 1,35 % de tout ce que tu mises (chances simples, La Partage) — calcul exact pour tes réglages (70 coups au plus) : atteindre l'objectif " + fp(P) + ", résultat moyen −" + fm(E) + " par session.";
 }
 const CINQ_LIGNES_A = [
-  ["Principe", "tu joues toute l'heure (70 coups) sur une chance simple avec La Partage ; les mises qui visent l'objectif s'arrêtent au plancher −50 % de la cave, ensuite 1 € par coup."],
-  ["Mises", "sous l'objectif : ce qui manque pour l'atteindre, au plus 20 % de la cave (à +10 € / 300 € : 10 €, puis 20, 40, 60 € après des pertes) ; objectif atteint, ou plancher −50 % de la cave atteint : 1 € (mise minimale)."],
-  ["Quand s'arrêter", "après le 70e coup (fin de l'heure), objectif atteint ou non ; on ne recharge jamais."],
+  ["Principe", "sur une chance simple avec La Partage, tu vises l'objectif en 1 h au plus (70 coups) ; STOP dès qu'il est atteint ; les mises qui visent l'objectif s'arrêtent au plancher −50 % de la cave, ensuite 1 € par coup jusqu'au 70e."],
+  ["Mises", "sous l'objectif : ce qui manque pour l'atteindre, au plus 20 % de la cave (à +10 € / 300 € : 10 €, puis 20, 40, 60 € après des pertes) ; plancher −50 % de la cave atteint : 1 € (mise minimale)."],
+  ["Quand s'arrêter", "dès que l'objectif est atteint (STOP, on encaisse) ; sinon après le 70e coup (fin de l'heure) ; on ne recharge jamais."],
   ["Chance de tenir 1 h", "100 % à +10 € / 300 € et à +50 € / 300 € : la cave ne peut pas se vider (calcul exact)."],
-  ["Réussite et perte moyenne sur 1 h", "finir l'heure à l'objectif : 80,38 % et −2,02 € à +10 € / 300 € ; 64,38 % et −3,38 € à +50 € / 300 € (calcul exact, 70 coups)."]
+  ["Réussite et perte moyenne", "atteindre l'objectif : 93,50 % et −0,73 € à +10 € / 300 € ; 74,47 % et −2,32 € à +50 € / 300 € (calcul exact, 70 coups au plus)."]
 ];
-const POURQUOI_A = "pour tenir l'heure, suis la carte « Ta prochaine mise » : tu joues les 70 coups, la mise suit ce qui manque pour l'objectif (au plus 20 % de la cave, sans descendre sous le plancher −50 % de la cave), puis 1 € une fois l'objectif ou le plancher atteint. Le bot de cet encart vise l'objectif au plus vite et s'arrête dès qu'il est atteint : moins de coups, mais l'heure n'est pas jouée.";
-const RAPPEL_A = "L'avantage reste au casino : en moyenne tu perds 1,35 % de tout ce que tu mises (chances simples avec La Partage). Jouer toute l'heure fait miser plus au total, donc perdre un peu plus en moyenne qu'en s'arrêtant tôt ; aucune méthode ne bat le zéro.";
+const POURQUOI_A = "suis la carte « Ta prochaine mise » : la mise suit ce qui manque pour l'objectif (au plus 20 % de la cave, sans descendre sous le plancher −50 % de la cave, puis 1 € au plancher), et STOP dès que l'objectif est atteint ; sinon l'heure s'arrête au 70e coup. Le bot de cet encart vise lui aussi l'objectif au plus vite et s'arrête dès qu'il est atteint.";
+const RAPPEL_A = "L'avantage reste au casino : en moyenne tu perds 1,35 % de tout ce que tu mises (chances simples avec La Partage). S'arrêter à l'objectif ne change pas cet avantage ; aucune méthode ne bat le zéro.";
 // ===== FIN MÉTHODE BOT 1 H =====
 
 // ===== INTERFACE (fichier HTML autonome) =====
 var CLE_S = 'roulette_v3_session';   // ancienne sauvegarde (v17 et avant) : reprise une fois puis remplacée
 var CLE_H = 'roulette_v18_historique', VER_H = 1, HIST = { source: '', coups: 0 };   // v18 : historique des coups conservé à la fermeture
 var pile = [], lignes = [], nChoisi = 10, FICHES = {}, minuterie = null;
+// v20 : JETON des chances simples (pile[0].jt en centimes, absent = 1 €). Le moteur compte en jetons ; les montants affichés sont convertis en € (× JS)
+// dans les zones de la session (carte, historique, tuiles, chances, fiche, encart du bot…). JS = 1 : rien n'est converti (comportement v19).
+var JET_S = [20, 50, 100, 200, 500, 1000];
+function jetS() { var p = pile[0]; return p && !p.jeu && JET_S.indexOf(p.jt) >= 0 ? p.jt : 100; }
+function majJS() { JS = jetS() / 100; }
+function avecJT(s, jt) { if (!s.jeu && jt && jt !== 100 && JET_S.indexOf(jt) >= 0) s.jt = jt; return s; }
+function jetonBrouillon() { var v = Number($('jeton').value); return $('genre').value === 'simple' && JET_S.indexOf(v) >= 0 ? v : 100; }
+function fJ(x, k) { k = k || JS; var v = Math.round(x * k * 100) / 100; return Number.isInteger(v) ? String(v) : v.toFixed(2).replace('.', ','); }
+function fJS(x) { return JS === 1 ? String(x) : fJ(x); }
+var RX_J = /([−+-]?\d+(?:,\d+)?)((?:\s(?:\/|→|\+|=|à)\s[−+-]?\d+(?:,\d+)?)*)([ \u00a0]?)€/g;
+function convTxt(t, k) { k = k || JS; if (k === 1) return t;
+  return t.replace(RX_J, function (m, a, b, sp) { return (a + b).replace(/[−+-]?\d+(?:,\d+)?/g, function (n) { var sg = /^[−-]/.test(n) ? '−' : (n.charAt(0) === '+' ? '+' : ''); return sg + fJ(Number(n.replace(/^[−+-]/, '').replace(',', '.')), k); }) + sp + '€'; }); }
+var ZONES_J = ['conseil', 'tuiles', 'stats', 'proba', 'nsess', 'jauge', 'hist', 'fiche', 'explic', 'departs', 'botCorps', 'botNegNote', 'rEtat', 'rLock', 'regleA', 'regleR', 'regleU', 'regleEch', 'regle22', 'regle3', 'regleMulti', 'regleCJ'];
+var VU_J = new WeakMap(), CONV_J = false;
+function convDom() { if (CONV_J) return; CONV_J = true;
+  try { ZONES_J.forEach(function (id) { var el = $(id); if (!el) return; var k = id === 'departs' ? jetonBrouillon() / 100 : JS; if (k === 1) return;
+    var w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), n; while ((n = w.nextNode())) { if (VU_J.get(n) === n.data) continue; var t = convTxt(n.data, k); if (t !== n.data) n.data = t; VU_J.set(n, t); } }); } catch (e) {}
+  CONV_J = false; }
+if (typeof MutationObserver !== 'undefined') new MutationObserver(function () { if (JS !== 1 || jetonBrouillon() !== 100) convDom(); }).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
 function eur(v, sign) { var a = Math.abs(v), s = (a % 1 ? a.toFixed(1) : String(a)).replace('.', ',');
   return (v < 0 ? '−' : (v > 0 && sign !== false ? '+' : '')) + s + ' €'; }
-function eur2(v) { var r = Math.round(v * 100) / 100; return (r < 0 ? '−' : (r > 0 ? '+' : '')) + Math.abs(r).toFixed(2).replace('.', ',') + ' €'; }
+function eur2(v) { if (JS !== 1) { var q = Math.round(v * JS * 100) / 100; return (q < 0 ? '−' : (q > 0 ? '+' : '')) + Math.abs(q).toFixed(2).replace('.', ',') + '\u2009€'; }   // v20 : jeton ≠ 1 € (déjà en €, non reconverti)
+  var r = Math.round(v * 100) / 100; return (r < 0 ? '−' : (r > 0 ? '+' : '')) + Math.abs(r).toFixed(2).replace('.', ',') + ' €'; }
 function pc(p) { if (p >= 0.99995 && p < 1) return '> 99,99 %'; if (p > 0 && p < 0.00005) return '< 0,01 %'; return (100 * p).toFixed(2).replace('.', ',') + ' %'; }
 function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
 function $(id) { return document.getElementById(id); }
@@ -3423,12 +3451,13 @@ function reprendre(d) {
   if (!(typeof s0.obj === 'number' && typeof s0.cave === 'number' && s0.obj >= 1 && s0.obj <= 200 && s0.cave >= 50 && s0.cave <= 2000 && s0.obj < s0.cave) || s0.bilan !== 0 || s0.fin) return false;
   if (!M && chances.indexOf(s0.chanceFixe) < 0) return false;
   if (s0.cj !== undefined && (M || cjDe(s0.cj) !== s0.cj)) return false;   // v19 : chance jouée (chances simples seulement)
+  if (s0.jt !== undefined && (M || s0.jt === 100 || JET_S.indexOf(s0.jt) < 0)) return false;   // v20 : jeton (chances simples ; absent = 1 €)
   if (!d.nums.every(function (x) { return typeof x === 'number' && x % 1 === 0 && x >= 0 && x <= 36; })) return false;
   METH = methDe(d.meth); if (!M) METH = methDe(s0.v);
-  var p0 = M ? nouvelleM(s0.jeu, s0.obj, s0.cave) : avecCJ(nouvelle(s0.chanceFixe, s0.obj, s0.cave, depDe(s0.dep)), s0.cj);
+  var p0 = M ? nouvelleM(s0.jeu, s0.obj, s0.cave) : avecJT(avecCJ(nouvelle(s0.chanceFixe, s0.obj, s0.cave, depDe(s0.dep)), s0.cj), s0.jt);
   if (JSON.stringify(p0) !== JSON.stringify(s0)) return false;
   pile = [p0]; lignes = [];
-  for (var i = 0; i < d.nums.length; i++) if (!pas(d.nums[i])) return false;
+  for (var i = 0; i < d.nums.length; i++) if (!pas(d.nums[i])) { if (etat().fin === 'OBJECTIF' && pile.length > 1) { HIST.tronque = d.nums.length - i; break; } return false; }   // v20 : sauvegarde v19 jouée après l'objectif → arrêt au STOP
   var n = Math.round(Number(d.n)); nChoisi = n >= 1 && n <= 200 ? n : 10;
   return true;
 }
@@ -3440,7 +3469,7 @@ function charger() {
     if (brut !== null) d = JSON.parse(brut);
     else { var v = JSON.parse(vieux); if (v && v.pile && v.pile.length && v.lignes && v.lignes.length === v.pile.length - 1) { var a = v.pile[v.pile.length - 1];   // reprise de la sauvegarde v17
       d = { ver: VER_H, meth: a && !a.jeu ? methDe(a.v) : '2.1', s0: v.pile[0], nums: v.lignes.map(function (l) { return l.num; }), n: v.n }; } }
-    if (reprendre(d)) { HIST = { source: brut !== null ? 'v18' : 'v17', coups: lignes.length }; if (brut === null) { sauver(); try { localStorage.removeItem(CLE_S); } catch (e) {} } return true; }
+    if (reprendre(d)) { var tr = HIST.tronque; HIST = { source: brut !== null ? 'v18' : 'v17', coups: lignes.length }; if (tr) { HIST.tronque = tr; sauver(); } if (brut === null) { sauver(); try { localStorage.removeItem(CLE_S); } catch (e) {} } return true; }
   } catch (e) {}
   HIST = { source: 'illisible', coups: 0 }; METH = '2.1';   // sauvegarde abîmée : session vide (réglages par défaut), sans erreur
   try { localStorage.removeItem(CLE_H); localStorage.removeItem(CLE_S); } catch (e) {}
@@ -3452,7 +3481,7 @@ function effacerHistorique() {
   try { localStorage.removeItem(CLE_H); localStorage.removeItem(CLE_S); } catch (e) {}
   ancrer('conseil'); nouvelleSession(); HIST = { source: 'effacé', coups: 0 }; return true;
 }
-function etat() { var s = norm(pile[pile.length - 1]); if (!estM(s)) METH = methDe(s.v); return s; }   // la méthode suit la session des chances simples
+function etat() { var s = norm(pile[pile.length - 1]); if (!estM(s)) METH = methDe(s.v); majJS(); return s; }   // la méthode suit la session des chances simples
 function enCours() { return lignes.length > 0 && !etat().fin; }
 function lireParams() { var b = lireBrouillon(); return b.ok ? { obj: b.obj, cave: b.cave } : null; }
 function dpDe(o, c, dep, fin) {
@@ -3461,7 +3490,7 @@ function dpDe(o, c, dep, fin) {
   setTimeout(function () { var d = dpCache(o, c, depDe(dep)); calcOff(); fin(d); }, 30);
 }
 // « Nouvelle session » : bilan à 0 € avec les réglages appliqués (affichés en haut) ; l'écran ne bouge pas.
-function nouvelleSession() { var s = etat(); pile = [estM(s) ? nouvelleM(s.jeu, s.obj, s.cave) : avecCJ(nouvelle(s.chanceFixe, s.obj, s.cave, depDe(s.dep)), s.cj)]; lignes = []; MSG_SEL = ''; sauver(); rendre(); chargerBrouillon(etat()); majVerrou(); }
+function nouvelleSession() { var s = etat(), jt = jetS(); pile = [estM(s) ? nouvelleM(s.jeu, s.obj, s.cave) : avecJT(avecCJ(nouvelle(s.chanceFixe, s.obj, s.cave, depDe(s.dep)), s.cj), jt)]; lignes = []; MSG_SEL = ''; sauver(); rendre(); chargerBrouillon(etat()); majVerrou(); }
 function saisir(x) { if (!pas(x)) return; MSG_SEL = ''; sauver(); rendre(); }   // v18 : même coup qu'avant (pas), puis sauvegarde
 function annuler() { if (pile.length > 1) { pile.pop(); lignes.pop(); sauver(); rendre(); if (!lignes.length) chargerBrouillon(etat()); } }
 function rendre() { var s = etat(); if (estM(s)) return dpDeM(s, function (dp) { rendreAvecM(s, dp); }); dpDe(s.obj, s.cave, s.dep, function (dp) { rendreAvec(s, dp); }); }
@@ -3483,7 +3512,7 @@ function rendreAvec(s, dp) {
     el.innerHTML = '<div class="lab">' + (v22 ? labN(s.v) + ' · ' : '') + (s.coups ? 'Coup n° ' + (s.coups + 1) : 'Premier coup') + ' · objectif +' + s.obj + ' € · cave ' + s.cave + ' €</div><div class="mise">Mise : ' + c.mise + ' € <span style="font-size:24px">sur</span> <span class="ch ' + cc + '">' + c.chance + '</span></div><div class="etat">' + esc(c.etat) + '</div>' + (c.note ? '<div class="note">' + esc(c.note) + (v22 ? ' (' + srcN(s.v, 'p.2 §5') + ')' : ' (v2.1 p.1 §5)') + '</div>' : '') + al;
   }
   var lo = -s.cave, hi = s.obj, pos = function (v) { return (100 * (v - lo) / (hi - lo)).toFixed(2) + '%'; };
-  var j = ''; (s.v === 'R' || s.v === 'U' ? [[lo, '−' + s.cave], [-q2.T45, 'zone B'], [hi, '+' + s.obj]] : v22 ? [[lo, '−' + s.cave], [-q2.T200, 'filet'], [-q2.T150, 'P3'], [-q2.T45, 'P2'], [hi, '+' + s.obj]] : [[lo, '−' + s.cave], [-q.T200, 'filet'], [-q.T150, 'P3'], [-q.T30, 'P2'], [hi, '+' + s.obj]]).forEach(function (m) { j += '<div class="tk" style="left:' + pos(m[0]) + '"></div><div class="mk" style="left:' + pos(m[0]) + '">' + m[1] + '</div>'; });
+  var j = ''; (s.v === 'R' || s.v === 'U' ? [[lo, '−' + fJS(s.cave)], [-q2.T45, 'zone B'], [hi, '+' + fJS(s.obj)]] : v22 ? [[lo, '−' + fJS(s.cave)], [-q2.T200, 'filet'], [-q2.T150, 'P3'], [-q2.T45, 'P2'], [hi, '+' + fJS(s.obj)]] : [[lo, '−' + fJS(s.cave)], [-q.T200, 'filet'], [-q.T150, 'P3'], [-q.T30, 'P2'], [hi, '+' + fJS(s.obj)]]).forEach(function (m) { j += '<div class="tk" style="left:' + pos(m[0]) + '"></div><div class="mk" style="left:' + pos(m[0]) + '">' + m[1] + '</div>'; });
   var bv = Math.max(lo, Math.min(hi, s.bilan));
   j += '<div class="cur" style="left:calc(' + pos(bv) + ' - 2px)"></div><div class="val" style="left:' + pos(bv) + '">' + eur(s.bilan) + '</div>';
   $('jauge').innerHTML = j;
@@ -3555,7 +3584,7 @@ function regleEchelle(s, q) {
 function paramsFiche() { var s = etat(); return { obj: s.obj, cave: s.cave, dep: depDe(estM(s) ? s.jeu.dep : s.dep), jeu: estM(s) ? s.jeu : null }; }
 function appliquer(g, b) {
   if (enCours()) return;
-  $('pObj').value = g; $('pCave').value = b;
+  if (!estM(etat()) && jetS() !== 100) { $('jeton').value = String(jetS()); $('pObj').value = fJ(g); $('pCave').value = fJ(b); } else { $('pObj').value = g; $('pCave').value = b; }   // v20 : réglage proposé (en jetons) → saisi en €
   validerReglages('fiche');
 }
 var FICHE_EN_COURS = '';
@@ -3631,17 +3660,17 @@ function regleAHtml(s) {
   return '<p><b>' + nomA + '</b> (6e version, étude « tenir 1 h » du 19/11, remplace la Méthode bot Audace de la v16 ; à choisir dans les réglages ; v2.1 par défaut ; chances simples seulement)' + (A ? ' — <b>appliquée à cette session</b>' : '') + '.</p>' + cinqLignesAHtml() +
     '<table class="tab"><tr><th>Situation</th><th>Règle</th></tr>' +
     '<tr><td>Sous l\'objectif</td><td>Mise = le plus petit de : ce qui manque pour l\'objectif (arrondi à l\'euro au-dessus), le plafond de 20 % de la cave, ce qui reste avant le plancher (−50 % de la cave), le tapis (arrondis en dessous) ; jamais moins de 1 €.</td></tr>' +
-    '<tr><td>Objectif atteint ou dépassé</td><td>On continue l\'heure à 1 € (mise minimale) ; si le bilan repasse sous l\'objectif, la mise redevient ce qui manque.</td></tr>' +
+    '<tr><td>Objectif atteint ou dépassé</td><td>STOP : on encaisse et on ne mise plus, même avant le 70e coup (v20).</td></tr>' +
     '<tr><td>Plancher (−50 % de la cave)</td><td>1 € jusqu\'au 70e coup : au pire 69 € de plus sous le plancher, la cave ne peut pas se vider à 300 €.</td></tr>' +
     '<tr><td>Zéro</td><td>La Partage : la moitié de la mise est rendue (le bilan peut finir en ,50 €).</td></tr>' +
-    '<tr><td>Fin</td><td>Après le 70e coup (1 h) : objectif atteint si le bilan est au moins à l\'objectif, sinon fin de l\'heure sur le bilan du moment · cave vide (tapis sous 1 €) → stop, on ne recharge pas.</td></tr>' +
+    '<tr><td>Fin</td><td>Objectif atteint → STOP tout de suite · sinon après le 70e coup (1 h) : fin de l\'heure sur le bilan du moment · cave vide (tapis sous 1 €) → stop, on ne recharge pas.</td></tr>' +
     '<tr><td>Négatif saisi dans le Conseil du bot</td><td>Objectif = négatif + objectif, tapis = cave − négatif, plafond = 20 % du tapis, plancher = −50 % du tapis, nouvelle heure de 70 coups ; moins de 5 € de tapis → injouable (réglage valide le plus proche : négatif au plus cave − 5 €).</td></tr></table>';
 }
 function rendreAvecA(s, dp) {
   var c = conseil(s), el = $('conseil'), d = lignes[lignes.length - 1], i = dp.idx[cle(s)], cap = plafondA(s.cave), R = risqueA(s.cave), nA = s.nA || 0;
   el.className = 'carte conseil' + (s.fin === 'OBJECTIF' ? ' stop' : (s.fin ? ' out' : ''));
   var rap = '<div class="etat">' + esc(rappelA(dp.P[0], dp.E[0])) + '</div>';
-  if (s.fin === 'OBJECTIF') el.innerHTML = '<div class="mise">STOP ✔</div><div class="etat" style="font-size:18px;font-weight:700">Objectif +' + s.obj + ' € atteint — bilan ' + eur(s.bilan) + ' après ' + nA + ' coups (1 h)</div><div class="etat">L\'heure est jouée : encaisse, plus aucune mise (' + nomA + ').</div>' + rap;
+  if (s.fin === 'OBJECTIF') el.innerHTML = '<div class="mise">STOP ✔</div><div class="etat" style="font-size:18px;font-weight:700">Objectif +' + s.obj + ' € atteint — bilan ' + eur(s.bilan) + ' au coup ' + nA + ' / ' + A_N + '</div><div class="etat">Encaisse et arrête la session : plus aucune mise (' + nomA + ').</div>' + rap;
   else if (s.fin === 'HEURE') el.innerHTML = '<div class="mise">FIN</div><div class="etat" style="font-size:18px;font-weight:700">70 coups joués — bilan ' + eur(s.bilan) + '</div><div class="etat">Fin de l\'heure : on s\'arrête sur ce bilan, objectif +' + s.obj + ' € non atteint, on ne recharge pas (' + nomA + ').</div>' + rap;
   else if (s.fin) el.innerHTML = '<div class="mise">FIN</div><div class="etat" style="font-size:18px;font-weight:700">Cave vide — stop-loss −' + s.cave + ' €</div><div class="etat">Fin de session, ne recharge pas (' + nomA + ').</div>' + rap;
   else {
@@ -3650,7 +3679,7 @@ function rendreAvecA(s, dp) {
       '<div class="note" style="opacity:.9">' + esc(rappelA(dp.P[0], dp.E[0])) + '</div>';
   }
   var lo = -s.cave, hi = s.obj, pos = function (v) { return (100 * (v - lo) / (hi - lo)).toFixed(2) + '%'; };
-  var j = ''; [[lo, '−' + s.cave], [0, '0'], [hi, '+' + s.obj]].forEach(function (m) { j += '<div class="tk" style="left:' + pos(m[0]) + '"></div><div class="mk" style="left:' + pos(m[0]) + '">' + m[1] + '</div>'; });
+  var j = ''; [[lo, '−' + fJS(s.cave)], [0, '0'], [hi, '+' + fJS(s.obj)]].forEach(function (m) { j += '<div class="tk" style="left:' + pos(m[0]) + '"></div><div class="mk" style="left:' + pos(m[0]) + '">' + m[1] + '</div>'; });
   var bv = Math.max(lo, Math.min(hi, s.bilan));
   j += '<div class="cur" style="left:calc(' + pos(bv) + ' - 2px)"></div><div class="val" style="left:' + pos(bv) + '">' + eur(s.bilan) + '</div>';
   $('jauge').innerHTML = j;
@@ -3659,16 +3688,16 @@ function rendreAvecA(s, dp) {
   $('tuiles').innerHTML = '<div><b>' + eur(s.bilan) + '</b><span>Bilan</span></div><div><b>' + eur(s.cave + s.bilan, false) + '</b><span>Tapis (reste en cave)</span></div><div><b>' + eur(manque, false) + '</b><span>Manque pour +' + s.obj + ' €</span></div>' +
     '<div><b>' + cap + ' €</b><span>Plafond (20 % de la cave)</span></div><div><b>−' + R + ' €</b><span>Plancher (50 % de la cave)</span></div><div><b>' + nA + ' / ' + A_N + '</b><span>Coups joués</span></div>';
   $('explic').innerHTML = '<h2>Ce que dit la méthode</h2>' + (d ? '<div style="font-size:13.5px">Coup ' + d.n + ' : n° <b>' + d.num + '</b> → <b class="' + (d.res === 'gagné' ? 'g' : d.res === 'zéro' ? 'zz' : 'p') + '">' + d.res + '</b> (' + eur(d.gain) + ' sur ' + d.mise + ' € ' + d.chance + ')</div><ul class="regles">' + d.regles.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('') + '</ul>'
-    : '<div style="font-size:13px">Pose ' + c.mise + ' € sur ' + c.chance + ', lance, puis touche le numéro sorti. ' + nomA + ' : on joue les 70 coups ; sous l\'objectif, la mise suit ce qui manque (au plus ' + cap + ' €, 20 % de la cave, jamais sous −' + R + ' €) ; objectif ou plancher atteint : 1 €. ' + s.chanceFixe + ' toute la session, jamais selon les numéros sortis avant.</div>');
+    : '<div style="font-size:13px">Pose ' + c.mise + ' € sur ' + c.chance + ', lance, puis touche le numéro sorti. ' + nomA + ' : sous l\'objectif, la mise suit ce qui manque (au plus ' + cap + ' €, 20 % de la cave, jamais sous −' + R + ' €) ; plancher atteint : 1 € jusqu\'au 70e coup ; objectif atteint : STOP. ' + s.chanceFixe + ' toute la session, jamais selon les numéros sortis avant.</div>');
   var h = '<h2>Tes chances (calcul exact, 70 coups)</h2>';
   if (!s.fin && i !== undefined) {
     var pHi = 0, pCi = 0, Li = loiA(dp, i); for (var m = 0; m < Li.v.length; m++) { if (Li.v[m] >= s.obj) continue; if (s.cave + Li.v[m] < 1) pCi += Li.p[m]; else pHi += Li.p[m]; }
     h += '<table><tr><td>Ce coup : gagner (' + c.chance + ')</td><td>18/37 = ' + pc(PW) + '</td></tr><tr><td>Ce coup : zéro (La Partage, ' + eur(c.mise / 2, false) + ' rendus)</td><td>1/37 = ' + pc(PZ) + '</td></tr><tr><td>Ce coup : perdre</td><td>18/37 = ' + pc(PL) + '</td></tr>' +
       '<tr><td>Coups restants dans l\'heure</td><td>' + (A_N - nA) + '</td></tr>' +
-      '<tr><td><b>Finir l\'heure à +' + s.obj + ' € ou plus</b></td><td>' + pc(dp.P[i]) + '</td></tr><tr><td>Finir l\'heure sous l\'objectif</td><td>' + pc(pHi) + '</td></tr><tr><td>Finir cave vide (−' + s.cave + ' €)</td><td>' + pc(pCi) + '</td></tr>' +
+      '<tr><td><b>Atteindre +' + s.obj + ' € (STOP) d\'ici le 70e coup</b></td><td>' + pc(dp.P[i]) + '</td></tr><tr><td>Finir l\'heure sous l\'objectif</td><td>' + pc(pHi) + '</td></tr><tr><td>Finir cave vide (−' + s.cave + ' €)</td><td>' + pc(pCi) + '</td></tr>' +
       '<tr><td>Résultat moyen attendu d\'ici la fin de l\'heure</td><td>' + eur2(dp.E[i] - s.bilan) + '</td></tr><tr><td>Résultat moyen d\'une session (départ)</td><td>' + eur2(dp.E[0]) + '</td></tr></table>';
-  } else h += '<div style="font-size:13px">Session terminée. Avec ces réglages, l\'heure finit à +' + s.obj + ' € ou plus dans ' + pc(dp.P[0]) + ' des sessions ; résultat moyen ' + eur2(dp.E[0]) + ' par session.</div>';
-  h += '<div class="mini" style="margin-top:6px">Calcul exact sur les ' + dp.n + ' situations de jeu possibles pour ces réglages (aucune simulation), vérifié par 1 million de sessions simulées. Une session dure 70 coups (1 h) ; elle ne s\'arrête avant que si la cave est vide. <b>Chaque coup est indépendant : les numéros sortis ne changent pas ces chiffres.</b></div>';
+  } else h += '<div style="font-size:13px">Session terminée. Avec ces réglages, l\'objectif +' + s.obj + ' € est atteint (STOP) dans ' + pc(dp.P[0]) + ' des sessions ; résultat moyen ' + eur2(dp.E[0]) + ' par session.</div>';
+  h += '<div class="mini" style="margin-top:6px">Calcul exact sur les ' + dp.n + ' situations de jeu possibles pour ces réglages (aucune simulation), vérifié par 1 million de sessions simulées. Une session s\'arrête dès que l\'objectif est atteint (STOP), sinon au 70e coup (1 h) ou si la cave est vide. <b>Chaque coup est indépendant : les numéros sortis ne changent pas ces chiffres.</b></div>';
   $('proba').innerHTML = h;
   rendreBot(dp);
   var a = statsN(dp, null, nChoisi), b = statsN(dp, s, nChoisi);
@@ -3705,8 +3734,8 @@ function dessinerFicheA(f) {
   h += '<h3>' + nomA + ' en 5 lignes</h3>' + cinqLignesAHtml();
   h += '<h3>Tes mises avec ce réglage (' + nomA + ')</h3><table>' + tr('Plafond (20 % de la cave)', e.cap + ' €') + tr('Plancher (50 % de la cave)', '−' + e.R + ' €') + tr('1re mise', e.pertes[0] + ' €') +
     '<tr><td colspan="2" style="white-space:normal;text-align:left">Après des pertes d\'affilée : ' + e.pertes.join(' → ') + ' €' + (e.finPertes === 'PLANCHER' ? ' (plancher atteint), puis 1 € jusqu\'au 70e coup' : e.finPertes === 'CAVE_VIDE' ? ' (cave vide)' : ' …') + '</td></tr>' +
-    tr('Zéro au 1er coup', e.zero[0] + ' € → bilan ' + fs2(e.zero[1]) + ' € → ' + e.zero[2] + ' €') + tr('Objectif atteint avant la fin', '1 € par coup jusqu\'au 70e') + '</table>';
-  h += '<h3>Une heure de 70 coups (calcul exact)</h3><table>' + tr('Tenir 1 h (70 coups sans cave vide)', pc(st.tenir)) + tr('Finir l\'heure à +' + f.obj + ' € ou plus', pc(st.P)) + tr('Finir l\'heure en gain', pc(st.Pgain)) + tr('Finir l\'heure sous l\'objectif', pc(st.Pheure)) + tr('Cave vide (−' + f.cave + ' €)', pc(st.Pcave)) +
+    tr('Zéro au 1er coup', e.zero[0] + ' € → bilan ' + fs2(e.zero[1]) + ' € → ' + e.zero[2] + ' €') + tr('Objectif atteint', 'STOP : plus aucune mise') + '</table>';
+  h += '<h3>Une session de 70 coups au plus (calcul exact)</h3><table>' + tr('Tenir 1 h (sans cave vide)', pc(st.tenir)) + tr('Atteindre +' + f.obj + ' € (STOP)', pc(st.P)) + tr('Finir en gain', pc(st.Pgain)) + tr('Finir l\'heure sous l\'objectif', pc(st.Pheure)) + tr('Cave vide (−' + f.cave + ' €)', pc(st.Pcave)) +
     tr('Résultat moyen par session', eur2(st.E)) + tr('Total misé par session (moyenne)', fs2(Math.round(st.mis * 10) / 10) + ' €') + tr('Plus grosse mise possible', st.max + ' €') + tr('Coups par session (moyenne)', fs2(Math.round(st.coups * 10) / 10)) + '</table>';
   h += '<h3>Plusieurs sessions (calcul exact)</h3><table><tr><td></td><td>Toutes à l\'objectif</td><td>≥ 1 session ratée</td><td>Total moyen</td></tr>' + f.n.map(function (x) { return '<tr><td>' + x.N + ' sessions</td><td>' + pc(x.tous) + '</td><td>' + pc(x.cave1) + '</td><td>' + eur2(x.total) + '</td></tr>'; }).join('') + '</table>';
   h += '<h3>Réglages plus sûrs</h3><div class="mini">« Plus sûr » = réussite plus haute <b>et</b> perte moyenne par session plus petite (vérifié par le calcul exact avant affichage). On baisse d\'abord l\'objectif à cave égale ; une cave plus grande n\'est proposée que si rien d\'autre ne convient, car elle met plus d\'argent en jeu.</div>';
@@ -3746,7 +3775,8 @@ function majReglages(g) {
   // v13 : la méthode se choisit pour toutes les mises ; v2.2, v3 et B restent réservées aux chances simples (grisées sinon), le Repli progressif marche partout
   [].forEach.call($('meth').options, function (o) { o.disabled = g !== 'simple' && o.value !== '2.1' && o.value !== 'R' && o.value !== 'U'; });
   if (g !== 'simple' && $('meth').value !== '2.1' && $('meth').value !== 'R' && $('meth').value !== 'U') $('meth').value = '2.1';
-  $('lCible').style.display = g === 'douzaine' ? '' : 'none'; $('lJeton').style.display = g === 'simple' ? 'none' : '';
+  $('lCible').style.display = g === 'douzaine' ? '' : 'none'; $('lJeton').style.display = '';   // v20 : jeton pour toutes les versions
+  [].forEach.call($('jeton').options, function (o) { var x = g === 'simple' && o.value === '10'; o.disabled = x; o.hidden = x; }); if (g === 'simple' && $('jeton').value === '10') $('jeton').value = '100';
   $('lNb').style.display = (g === 'plein' || g === 'carre') ? '' : 'none'; $('choixPos').style.display = (g === 'plein' || g === 'carre') ? '' : 'none';
   if (g === 'plein' || g === 'carre') { $('tNb').textContent = g === 'plein' ? 'Nombre de numéros pleins (1 à 12)' : 'Nombre de carrés (1 à 6, sans numéro commun)';
     if ($('nb').getAttribute('data-g') !== g) { var h = ''; for (var c = 1; c <= MAX_POS[g]; c++) h += '<option value="' + c + '">' + c + '</option>'; $('nb').innerHTML = h; $('nb').setAttribute('data-g', g); $('nb').value = String(Math.max(1, SEL[g].length)); } }
@@ -3963,7 +3993,7 @@ try { var bh0 = Number(localStorage.getItem('roulette_bot_h')); if (BOT_H_OPT.in
 function botChoixH(h) { BOT_H = h; try { localStorage.setItem('roulette_bot_h', String(h)); } catch (e) {} rendreBot(); }
 function botChoixMode(m) { BOT_MODE = m; try { localStorage.setItem('roulette_bot_mode', m); } catch (e) {} rendreBot(); }
 // « Mon négatif (déjà perdu) » : montant positif en €, 0 par défaut, à l'euro, borné à la cave ; gardé en mémoire (et en variable si le stockage est bloqué)
-function botChoixNeg(v) { var c = etat().cave; v = Math.floor(Number(String(v).replace(',', '.'))); if (!(v > 0)) v = 0; if (v > c) v = c;
+function botChoixNeg(v) { var c = etat().cave * JS; v = Math.floor(Number(String(v).replace(',', '.'))); if (!(v > 0)) v = 0; if (v > c) v = Math.floor(c);   // v20 : en €, borné à la cave en €
   BOT_NEG = v; try { localStorage.setItem('roulette_bot_neg', String(v)); } catch (e) {} var i = $('botNeg'); if (i) i.value = String(v); rendreBot(); }
 (function () { var i = $('botNeg'); if (!i) return; i.value = String(BOT_NEG);
   i.onchange = function () { botChoixNeg(i.value); }; i.onkeydown = function (e) { if (e.key === 'Enter') i.blur(); }; })();
@@ -3971,7 +4001,7 @@ function botEur(v) { return fEur(Math.round(v * 100) / 100) + ' €'; }
 function lancerBot(T, extra, cle) { if (BOT_EN_COURS === cle) return; BOT_EN_COURS = cle; calcOn();
   chaine(botTaches(T).concat(extra), function () { BOT_EN_COURS = ''; calcOff(); rendreBot(); }); }
 function majNegNote(s, nb) {
-  var i = $('botNeg'); if (i) { i.max = String(s.cave); if (document.activeElement !== i) i.value = String(BOT_NEG); }
+  var i = $('botNeg'); if (i) { i.max = String(s.cave * JS); if (document.activeElement !== i) i.value = String(BOT_NEG); }
   var n = $('botNegNote'); if (!n) return;
   var t = '<div class="botnegexp">Ton négatif compte comme de l\'argent déjà sorti de ta cave : tapis restant = cave − négatif, et l\'objectif devient de finir à +' + s.obj + ' € au total, donc de regagner négatif + objectif' +
     (nb.neg > 0 && nb.ok ? ' (ici ' + nb.neg + ' + ' + s.obj + ' = ' + nb.o + ' € à regagner, avec ' + nb.c + ' € de tapis).' : '.') + '</div>';
@@ -3981,7 +4011,7 @@ function majNegNote(s, nb) {
 // Texte de l'encart, commun aux deux types de mise ; dp = calcul exact de la méthode pour les réglages affichés
 function rendreBot(dp) {
   if (dp) BOT_DP = dp; dp = BOT_DP; var el = $('botCorps'); if (!el) return;
-  var s = etat(), M = estM(s), j = M ? s.jeu : null, nb = botNegatif(s.obj, s.cave, j, Math.min(BOT_NEG, s.cave)), dep = M ? depDe(j.dep) : depDe(s.dep);
+  var s = etat(), M = estM(s), j = M ? s.jeu : null, nb = botNegatif(s.obj, s.cave, j, Math.min(M ? BOT_NEG : Math.floor(BOT_NEG / JS + 0.000000001), s.cave)), dep = M ? depDe(j.dep) : depDe(s.dep);
   majNegNote(s, nb);
   var h = '<div class="botlab">Tours prévus pour la session</div><div class="nbtn botH">' + BOT_H_OPT.map(function (n) { return '<button type="button" class="' + (n === BOT_H ? 'on' : '') + '" onclick="botChoixH(' + n + ')">' + n + '</button>'; }).join('') + '</div>' +
     '<div class="botmode"><button type="button" class="' + (BOT_MODE === 'appli' ? 'on' : '') + '" onclick="botChoixMode(\'appli\')">Bilan de l\'appli<br><span>(mises de la méthode)</span></button><button type="button" class="' + (BOT_MODE === 'bot' ? 'on' : '') + '" onclick="botChoixMode(\'bot\')">Je suis le bot<br><span>(depuis le 1er coup)</span></button></div>';
@@ -4090,14 +4120,19 @@ function prechauffeM(o, c, j) {
 // Écritures « seulement si ça change » : sur iPhone, un changement du contenu pendant un toucher annule le clic (bouton Valider qui ne répond pas)
 function metTexte(el, t) { if (el.textContent !== t) el.textContent = t; }
 function metClasse(el, c) { if (el.className !== c) el.className = c; }
-function metHtml(el, h) { if (el.getAttribute('data-h') !== h) { el.innerHTML = h; el.setAttribute('data-h', h); } }
+function metHtml(el, h) { var hk = JS === 1 && jetonBrouillon() === 100 ? h : h + '¤' + JS + '¤' + jetonBrouillon(); if (el.getAttribute('data-h') !== hk) { el.innerHTML = h; el.setAttribute('data-h', hk); } }   // v20 : jeton dans la clé (conversion en €)
 function metDesactive(el, v) { if (el.disabled !== v) el.disabled = v; }
 // --- Brouillon : ce qui est affiché dans « Réglages » ; rien n'est appliqué avant « Valider les réglages » ---
 var TOUCHE = { obj: false, cave: false, sel: false };
 var DEP_B = 'normal';   // départ choisi dans le brouillon (normal / petit / moyen)
 function entier(v) { v = String(v).trim(); return /^[0-9]+$/.test(v) ? Number(v) : NaN; }
+// v20 : montant en € avec des jetons ≠ 1 € (chances simples) → nombre de jetons (NaN si pas un multiple du jeton ou mal écrit)
+function jetonsDe(v, jt) { v = String(v).trim().replace(',', '.'); if (!/^[0-9]+(\.[0-9]{1,2})?$/.test(v)) return NaN; var n = Math.round(Number(v) * 100), q = n / jt; return Number.isInteger(q) ? q : -1; }
+function majNoteLim() { var jt = jetonBrouillon(), k = jt / 100, t = jt === 100 || $('genre').value !== 'simple' ? 'Objectif 1 à 200 € · cave 50 à 2000 € · ' + ($('genre').value === 'simple' ? 'multiples du jeton de 1 €' : 'euros entiers') : 'Objectif ' + fJ(1, k) + ' à ' + fJ(200, k) + ' € · cave ' + fJ(50, k) + ' à ' + fJ(2000, k) + ' € · multiples du jeton de ' + fJ(1, k) + ' € (1 à 200 jetons, cave 50 à 2000 jetons)';
+  metTexte($('noteLim'), t + '. Rien ne change avant « Valider ».'); }
 function lireBrouillon() {
-  var g = $('genre').value, o = entier($('pObj').value), c = entier($('pCave').value), e = {};
+  var g = $('genre').value, jt = jetonBrouillon(), o = entier($('pObj').value), c = entier($('pCave').value), e = {};
+  if (jt !== 100) return lireBrouillonJ(g, jt);   // v20 : jeton ≠ 1 € (chances simples)
   if (String($('pObj').value).trim() === '') e.obj = 'Objectif : écris un montant (1 à 200 €).';
   else if (isNaN(o)) e.obj = 'Objectif : nombre entier d\'euros, sans virgule ni signe.';
   else if (!(o >= 1 && o <= 200)) e.obj = 'Objectif : entre 1 € et 200 € (tu as écrit ' + $('pObj').value.trim() + ').';
@@ -4112,20 +4147,36 @@ function lireBrouillon() {
   if (j && (methDe($('meth').value) === 'R' || methDe($('meth').value) === 'U')) j.v = methDe($('meth').value);   // v19 : Ultimate+ aussi pour les autres mises   // v13 : Repli progressif aussi pour les autres mises
   if (j && methDe($('meth').value) === 'A') e.sel = 'Méthode bot 1 h : chances simples uniquement (La Partage, 1,35 %). Choisis « Chances simples » ou une autre méthode.';   // v17
   if (!e.obj && !e.cave && !e.jeton && !e.sel && (methDe($('meth').value) === 'R' || methDe($('meth').value) === 'U')) { var mb = objBloqueRDe(o, c, j, DEP_B); if (mb) e.obj = mb; }   // v14 : Ultimate, objectif trop petit → bloqué
-  return { obj: o, cave: c, genre: g, chance: $('mode').value, meth: methDe($('meth').value), cj: g === 'simple' ? cjDe($('cj').value) : 'fixe', dep: DEP_B, jeu: j, err: e, ok: !e.obj && !e.cave && !e.jeton && !e.sel };
+  return { obj: o, cave: c, genre: g, chance: $('mode').value, meth: methDe($('meth').value), cj: g === 'simple' ? cjDe($('cj').value) : 'fixe', dep: DEP_B, jeu: j, err: e, ok: !e.obj && !e.cave && !e.jeton && !e.sel, jt: 100 };
+}
+// v20 : chances simples avec un jeton de 0,20 / 0,50 / 2 / 5 / 10 € : objectif et cave en €, multiples du jeton ; bornes en jetons (1 à 200, 50 à 2000) ; obj et cave rendus EN JETONS
+function lireBrouillonJ(g, jt) {
+  var k = jt / 100, J = fJ(1, k) + ' €', vo = $('pObj').value.trim(), vc = $('pCave').value.trim(), o = jetonsDe(vo, jt), c = jetonsDe(vc, jt), e = {};
+  if (vo === '') e.obj = 'Objectif : écris un montant (' + fJ(1, k) + ' à ' + fJ(200, k) + ' €, multiple du jeton de ' + J + ').';
+  else if (isNaN(o)) e.obj = 'Objectif : un montant en euros (virgule permise, 2 décimales au plus), sans signe.';
+  else if (o < 0) e.obj = 'Objectif : multiple du jeton de ' + J + ' (tu as écrit ' + vo + ' €).';
+  else if (!(o >= 1 && o <= 200)) e.obj = 'Objectif : entre ' + fJ(1, k) + ' € et ' + fJ(200, k) + ' € avec des jetons de ' + J + ' (1 à 200 jetons ; tu as écrit ' + vo + ' €).';
+  if (vc === '') e.cave = 'Cave : écris un montant (' + fJ(50, k) + ' à ' + fJ(2000, k) + ' €, multiple du jeton de ' + J + ').';
+  else if (isNaN(c)) e.cave = 'Cave : un montant en euros (virgule permise, 2 décimales au plus), sans signe.';
+  else if (c < 0) e.cave = 'Cave : multiple du jeton de ' + J + ' (tu as écrit ' + vc + ' €).';
+  else if (!(c >= 50 && c <= 2000)) e.cave = 'Cave : entre ' + fJ(50, k) + ' € et ' + fJ(2000, k) + ' € avec des jetons de ' + J + ' (50 à 2000 jetons ; tu as écrit ' + vc + ' €)' + (c < 50 ? ' : cave trop petite pour ce jeton, prends un jeton plus petit ou une cave plus grande.' : ' : prends un jeton plus gros ou une cave plus petite.');
+  if (!e.obj && !e.cave && o >= c) e.obj = 'L\'objectif (' + vo + ' €) doit être plus petit que la cave (' + vc + ' €).';
+  if (!e.obj && !e.cave && (methDe($('meth').value) === 'R' || methDe($('meth').value) === 'U')) { var mb = objBloqueRDe(o, c, null, DEP_B); if (mb) e.obj = convTxt(mb, k); }   // Ultimate : objectif trop petit → bloqué (texte en €)
+  return { obj: o, cave: c, genre: g, chance: $('mode').value, meth: methDe($('meth').value), cj: cjDe($('cj').value), dep: DEP_B, jeu: null, err: e, ok: !e.obj && !e.cave, jt: jt };
 }
 function cleJeu(j) { return j ? j.genre + '/' + (j.genre === 'douzaine' ? j.cible : '') + '/' + j.jeton + '/' + (j.genre === 'plein' || j.genre === 'carre' ? posDe(j).slice().sort(function (a, b) { return a - b; }).join('-') : '') + '/' + depDe(j.dep) + (j.v === 'R' ? '/vR' : '') + (j.v === 'U' ? '/vU' : '') : 'simple'; }
 function brouillonModifie() {
   var s = etat(), b = lireBrouillon();
   if (String(b.obj) !== String(s.obj) || String(b.cave) !== String(s.cave)) return true;
+  if (!estM(s) && !b.jeu && b.jt !== jetS()) return true;   // v20 : jeton
   if (estM(s)) return !b.jeu || cleJeu(b.jeu) !== cleJeu(s.jeu);
   return !!b.jeu || b.chance !== s.chanceFixe || b.dep !== depDe(s.dep) || b.meth !== methDe(s.v) || b.cj !== cjDe(s.cj);
 }
 // Remet le brouillon sur les réglages appliqués (au chargement, après « Valider », « Nouvelle session », « Annuler », 1er coup)
 function chargerBrouillon(s) {
   s = s || etat(); TOUCHE = { obj: false, cave: false, sel: false };
-  $('pObj').value = s.obj; $('pCave').value = s.cave;
-  var g = estM(s) ? s.jeu.genre : 'simple'; $('genre').value = g; majReglages(g);
+  var g = estM(s) ? s.jeu.genre : 'simple'; $('genre').value = g; if (!estM(s)) $('jeton').value = String(jetS()); majReglages(g);   // v20 : jeton des chances simples
+  if (!estM(s) && jetS() !== 100) { $('pObj').value = fJ(s.obj, jetS() / 100); $('pCave').value = fJ(s.cave, jetS() / 100); } else { $('pObj').value = s.obj; $('pCave').value = s.cave; }
   if (estM(s)) { if (g === 'douzaine') $('cible').value = String(s.jeu.cible); $('jeton').value = String(s.jeu.jeton);
     if (g === 'plein' || g === 'carre') { SEL[g] = posDe(s.jeu).slice(); $('nb').value = String(SEL[g].length); }
     $('meth').value = s.jeu.v === 'R' || s.jeu.v === 'U' ? s.jeu.v : '2.1'; $('cj').value = 'fixe'; }
@@ -4134,6 +4185,7 @@ function chargerBrouillon(s) {
   MSG_SEL = ''; dessinerChoix(g, enCours()); majEtatReglages(); majDeparts();
 }
 function majEtatReglages() {
+  majNoteLim();
   var s = etat(), lock = enCours(), b = lireBrouillon(), e = b.err, mod = !lock && brouillonModifie();
   var champ = function (id, eid, msg, montrer) { metTexte($(eid), montrer && msg ? msg : ''); if (id && $(id).classList.contains('bad') !== !!(montrer && msg)) $(id).classList.toggle('bad', !!(montrer && msg)); };
   champ('pObj', 'eObj', e.obj, TOUCHE.obj); champ('pCave', 'eCave', e.cave, TOUCHE.cave); champ(null, 'eJeton', e.jeton, TOUCHE.obj || TOUCHE.cave || TOUCHE.sel); champ(null, 'eSel', e.sel, TOUCHE.sel);
@@ -4168,7 +4220,7 @@ function validerReglages(idAncre) {
   var b = lireBrouillon(); if (!b.ok) { majEtatReglages(); return false; }
   ancrer(idAncre || 'reglages');
   if (!b.jeu) METH = b.meth;   // méthode choisie (chances simples) : v2.1, v2.2, v3 complète ou B
-  pile = [b.jeu ? nouvelleM(b.jeu, b.obj, b.cave) : avecCJ(nouvelle(b.chance, b.obj, b.cave, b.dep), b.cj)]; lignes = []; MSG_SEL = ''; sauver();
+  pile = [b.jeu ? nouvelleM(b.jeu, b.obj, b.cave) : avecJT(avecCJ(nouvelle(b.chance, b.obj, b.cave, b.dep), b.cj), b.jt)]; lignes = []; MSG_SEL = ''; sauver();
   TOUCHE = { obj: false, cave: false, sel: false }; rendre(); majVerrou(); return true;
 }
 function initReglages() {
