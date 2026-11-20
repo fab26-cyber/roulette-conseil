@@ -149,6 +149,10 @@ html{overflow-anchor:none}
 <div id="rEtat" class="r-etat" aria-live="polite"></div>
 <button type="button" id="valider" class="valider">Valider les réglages</button>
 <div class="mini" id="pErr" style="color:#ffb3b3"></div></div></div>
+<div class="carte" id="essaiCarte"><h2>Essai historique</h2>
+<label for="essaiOpt" style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="essaiOpt" autocomplete="off" style="width:22px;height:22px"> Activer l'essai historique (option, désactivée par défaut)</label>
+<div id="essaiZone" style="display:none"><button type="button" id="essaiBtn" class="valider">Essai historique : rejouer les 70 coups du 19/11</button>
+<div class="mini" style="margin-top:6px">Un clic : les 70 numéros réels de la session du 19/11 sont rejoués avec la version et les réglages affichés ci-dessus (objectif, cave, jeton, chance, Chance jouée), et tu vois directement le résultat. ESSAI : rien n'est enregistré, ta session et ton historique ne bougent pas.</div></div></div>
 <div class="carte fiche" id="fiche"></div>
 <div class="carte hist"><h2>Historique des coups</h2><div class="mini" id="histNote" style="margin-bottom:6px">Gardé sur cet appareil, même si tu fermes l'appli. Pour le supprimer : « 🗑 Effacer l'historique » (sous le tapis).</div><div id="hist"></div></div>
 <div class="carte"><details><summary>Les règles appliquées (fiches v2 + v2.1 + v2.2, v3 complète, version B, Ultimate Roulette, Ultimate+, Méthode bot, chance jouée)</summary>
@@ -174,6 +178,7 @@ html{overflow-anchor:none}
 <p class="mini"><b>D'où vient la méthode (v2 p.1, gardé / changé)</b> : Paroli adapté dynamique (07/11) → mise sur le cumul des pertes et Paroli gardés, douzaine retirée, 3 paliers fixes, stop −300 €. Progression &amp; Paroli (10/11) → paliers + attaque Paroli gardés, douzaine et carré retirés. Assaut à 3 étapes (06/11) → 3 étapes gardées, passage en chance simple. Session longue (15/11) → d'Alembert doux +5, Paroli 3 coups gardés, +5 € plafonné. Optimisée rapide (15/11) → paliers fixes, 10/15/30 € au lieu de 50/120/130 €. Version 13/11 → chance simple, La Partage, plafond « ce qui manque » ; plus de montée de 10 en 10.</p>
 </details></div>
 <div class="pied">La roulette n'a pas de mémoire : l'appli règle ta mise, pas ta chance. Avantage casino 1,35 % sur chances simples avec La Partage, 2,70 % sur tiers du cylindre, douzaine, carré et plein.<br><span class="mini">Jamais de martingale : après une perte, un seul pas d'Alembert au maximum (+5 € avec les réglages de la fiche, 10 € / 300 €). Données enregistrées sur ce téléphone uniquement.</span></div>
+<div id="essaiEcran" role="dialog" aria-label="Essai historique" style="display:none;position:fixed;inset:0;z-index:9999;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#0a3326"></div>
 <script>
 const ROUGES = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
 const OBJ_DEF = 10, CAVE_DEF = 300;
@@ -4266,6 +4271,76 @@ function lancerStatsDeparts() {
 }
 initApp();   // lancé en dernier : tout le code (pleins, carrés, réglages) est chargé
 // ===== FIN RÉGLAGES =====
+// ===== v21 : ESSAI HISTORIQUE (demande de Fabrice, 20/11) — option, désactivée par défaut =====
+// Un clic → les 70 numéros réels de la session du 19/11/2026 sont rejoués avec la version et les réglages affichés (objectif, cave, jeton, chance, Chance jouée…),
+// par le MÊME moteur que la saisie (pas()), puis l'écran de résultat s'affiche. Rien n'est enregistré : la session réelle (pile, lignes, méthode, jeton)
+// est mise de côté puis remise à l'identique, aucune écriture dans le stockage (ni historique roulette_v18_historique, ni session, ni réglages).
+var ESSAI_NUMS = [0, 35, 0, 23, 30, 10, 15, 13, 21, 11, 36, 22, 34, 26, 30, 10, 23, 8, 1, 7, 10, 28, 9, 24, 35, 13, 16, 21, 18, 6, 23, 7, 21, 26, 0, 8, 21, 31, 28, 7, 9, 36, 25, 30, 7, 29, 24, 31, 27, 19, 7, 23, 0, 20, 25, 36, 22, 3, 25, 26, 25, 9, 7, 13, 29, 14, 34, 2, 4, 28];   // 19/11, coups 1 à 70 (captures 02 à 20)
+var CLE_ESSAI = 'roulette_essai_opt', ESSAI_DERNIER = null, ESSAI_SCROLL = 0;
+function essaiEf(v, k, sign) { var q = Math.round(v * k * 100) / 100, a = Math.abs(q), t = Number.isInteger(a) ? String(a) : a.toFixed(2).replace('.', ',');
+  return (q < 0 ? '−' : (q > 0 && sign !== false ? '+' : '')) + t + ' €'; }
+function essaiTexteOpt(id) { var el = $(id); return el && el.selectedIndex >= 0 ? el.options[el.selectedIndex].text.split(' : ')[0] : ''; }   // nom court (avant « : »)
+// Calcul : uniquement en mémoire ; la session réelle est restaurée quoi qu'il arrive (finally)
+function essaiCalc() {
+  var b = lireBrouillon();
+  if (!b.ok) { var m = []; for (var e in b.err) if (b.err[e]) m.push(b.err[e]); return (ESSAI_DERNIER = { err: m.join(' ') || 'Réglages incomplets.' }); }
+  var sv = { pile: pile, lignes: lignes, METH: METH, JS: JS }, r = null;
+  try {
+    if (!b.jeu) METH = b.meth;
+    pile = [b.jeu ? nouvelleM(b.jeu, b.obj, b.cave) : avecJT(avecCJ(nouvelle(b.chance, b.obj, b.cave, b.dep), b.cj), b.jt)]; lignes = [];
+    var s0 = etat(), M = estM(s0), k = M ? 1 : JS, joues = 0;
+    for (var i = 0; i < ESSAI_NUMS.length; i++) { if (!pas(ESSAI_NUMS[i])) break; joues++; }
+    var sf = etat(), L = lignes.map(function (l) { return { n: l.n, num: l.num, mise: l.mise, chance: l.chance, res: l.res, gain: l.gain, bilan: l.bilan, conseil: l.etatAvant, action: l.action }; });
+    var mise = 0, bas = 0; L.forEach(function (l) { mise += l.mise; if (l.bilan < bas) bas = l.bilan; });
+    r = { M: M, k: k, jt: M ? 0 : Math.round(k * 100), meth: M ? '' : (s0.v || METH), obj: s0.obj, cave: s0.cave, chance: b.chance, cj: M ? 'fixe' : b.cj,
+      version: M ? essaiTexteOpt('genre') : essaiTexteOpt('meth'), cjTxt: M ? '' : essaiTexteOpt('cj'), fin: sf.fin || '', joues: joues, lignes: L,
+      bilan: L.length ? L[L.length - 1].bilan : 0, mise: Math.round(mise * 100) / 100, bas: bas, aucunCoup: joues === 0 };
+  } finally { pile = sv.pile; lignes = sv.lignes; METH = sv.METH; JS = sv.JS; }
+  ESSAI_DERNIER = r; return r;
+}
+function essaiFinTxt(r) {
+  var n = r.joues, ici = ' au coup ' + n + ' / 70';
+  if (r.aucunCoup) return ['RÉGLAGE INJOUABLE', 'Aucun coup possible avec ces réglages (aucune mise proposée).'];
+  switch (r.fin) {
+    case 'OBJECTIF': return ['STOP ✔ Objectif atteint' + ici, 'Objectif +' + essaiEf(r.obj, r.k, false) + ' atteint : l\'appli dit « encaisse et arrête », plus aucune mise.' + (n < 70 ? ' Les ' + (70 - n) + ' numéros suivants ne sont pas joués.' : '')];
+    case 'ZONE_B': return ['STOP zone B' + ici, 'Ultimate+ : 20 coups en zone B atteints, fin de session.' + (n < 70 ? ' Les ' + (70 - n) + ' numéros suivants ne sont pas joués.' : '')];
+    case 'CAVE_VIDE': case 'TAPIS': return ['FIN : cave vide (stop-loss)' + ici, 'Plus assez sur le tapis pour miser : fin de session, on ne recharge pas.' + (n < 70 ? ' Les ' + (70 - n) + ' numéros suivants ne sont pas joués.' : '')];
+    case 'HEURE': return ['FIN de l\'heure : 70 coups joués', 'Méthode bot 1 h : 70 coups joués sans atteindre l\'objectif.'];
+    case 'TOURS': return ['FIN : nombre de tours atteint' + ici, 'Fin de session prévue par la méthode.'];
+    case '': return ['70 coups joués : objectif non atteint', 'La suite du 19/11 s\'arrête au coup 70 ; la session ne serait pas terminée.'];
+    default: return ['FIN (' + r.fin + ')' + ici, 'Fin de session.'];
+  }
+}
+function essaiOuvrir() {
+  var r = essaiCalc(), ov = $('essaiEcran'); if (!ov) return;
+  var h = '<div style="position:sticky;top:0;z-index:2;background:#b00020;color:#fff;text-align:center;font-weight:800;font-size:17px;padding:9px 8px;border-radius:0 0 12px 12px">ESSAI – rien n\'est enregistré</div>';
+  h += '<div class="carte"><h2>Essai historique : les 70 coups du 19/11/2026</h2>';
+  if (r.err) h += '<div class="alerte">Réglages à corriger d\'abord (bloc Réglages) : ' + esc(r.err) + '</div></div>';
+  else {
+    var f = essaiFinTxt(r), k = r.k, stop = r.fin === 'OBJECTIF';
+    h += '<div class="mini" id="essaiRegl">' + esc(r.version) + (r.M ? '' : ' · ' + esc(r.chance) + (r.cj !== 'fixe' ? ' · ' + esc(r.cjTxt) : ' · chance fixe')) + ' · objectif +' + essaiEf(r.obj, k, false) + ' · cave ' + essaiEf(r.cave, k, false) + (r.M ? '' : ' · jeton ' + essaiEf(1, k, false)) + '</div></div>';
+    h += '<div class="carte conseil' + (stop ? ' stop' : (r.fin ? ' out' : '')) + '" id="essaiRes"><div class="mise" style="font-size:26px">' + esc(f[0]) + '</div><div class="etat">' + esc(f[1]) + '</div></div>';
+    h += '<div class="carte"><h2>Résultat de l\'essai</h2><div class="tuiles" id="essaiTuiles"><div><b id="essaiBilan">' + essaiEf(r.bilan, k) + '</b><span>Bilan final</span></div><div><b id="essaiMise">' + essaiEf(r.mise, k, false) + '</b><span>Total misé</span></div><div><b id="essaiCoups">' + r.joues + ' / 70</b><span>Coups joués</span></div><div><b>' + essaiEf(r.bas, k) + '</b><span>Plus bas</span></div></div></div>';
+    if (r.lignes.length) {
+      var t = '<table style="width:100%;border-collapse:collapse;font-size:13px"><tr><th>Coup</th><th>N°</th><th>Mise</th><th>Résultat</th><th>Bilan</th></tr>';
+      r.lignes.forEach(function (l) { t += '<tr style="border-top:1px solid rgba(255,255,255,.15)"><td>' + l.n + '</td><td>' + l.num + '</td><td>' + essaiEf(l.mise, k, false) + ' ' + esc(l.chance) + '</td><td>' + esc(l.res) + '</td><td>' + essaiEf(l.bilan, k) + '</td></tr>'; });
+      h += '<div class="carte"><details id="essaiDetail"><summary style="font-weight:700;cursor:pointer">Voir le détail coup par coup</summary>' + t + '</table></details></div>';
+    }
+  }
+  h += '<button type="button" class="valider" id="essaiQuitter">Quitter l\'essai (retour à ma session)</button><div class="mini" style="text-align:center;margin:8px 0 24px">Essai sur les numéros réels du 19/11 : ça ne prédit pas les prochains coups. L\'avantage reste au casino (1,35 % sur chances simples).</div>';
+  ov.innerHTML = '<div style="max-width:560px;margin:0 auto;padding:0 10px">' + h + '</div>';
+  ESSAI_SCROLL = window.scrollY || 0; ov.style.display = 'block'; ov.scrollTop = 0; document.body.style.overflow = 'hidden';
+  $('essaiQuitter').onclick = essaiFermer;
+}
+function essaiFermer() { var ov = $('essaiEcran'); if (!ov) return; ov.style.display = 'none'; ov.innerHTML = ''; document.body.style.overflow = ''; window.scrollTo(0, ESSAI_SCROLL); }
+function essaiMajOpt() { var on = $('essaiOpt').checked; $('essaiZone').style.display = on ? '' : 'none'; }
+function initEssai() {
+  var c = $('essaiOpt'); if (!c) return;
+  try { c.checked = localStorage.getItem(CLE_ESSAI) === '1'; } catch (e) { c.checked = false; }
+  c.onchange = function () { try { if (c.checked) localStorage.setItem(CLE_ESSAI, '1'); else localStorage.removeItem(CLE_ESSAI); } catch (e) {} essaiMajOpt(); };
+  $('essaiBtn').onclick = essaiOuvrir; essaiMajOpt();
+}
+initEssai();
 </script>
 <script>
 /* PWA : enregistrement du service worker (hors ligne). N'intervient pas dans les calculs. */
