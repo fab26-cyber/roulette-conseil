@@ -136,6 +136,7 @@ html{overflow-anchor:none}
 <div class="mini" id="noteMeth" style="margin-top:4px">v2.1 par défaut. v2.2 (fiche du 18/11) : Palier 1 amorti à 7 €, verrou positif, Paroli sécurisé 20 → 30 → 50 € en Palier 2. v3 complète : toutes les idées de la v2.2 (paliers, +5, réserve, verrou, filet, reset) avec un Paroli à 2 coups tout le long et jamais plus de 60 € (à +50 € / 300 €). Version B : Paroli 2 coups doublé, mise d&#39;attente 5 € après 3 pertes d&#39;affilée, +10 € après 2 gains d&#39;affilée, jamais plus de 60 €. v2.2, v3 complète et B : chances simples seulement. Ultimate Roulette (Paroli à repli progressif, fiche V3 du 18/11) : 10 € à l&#39;ouverture, repli 7 / 5 / 3 / 2 € après des pertes d&#39;affilée (5 / 3 / 2 € quand le bilan est sous −25 €), après une perte jamais plus que la mise perdue (verrou, 2 € minimum), Paroli en escalier avec réserve (jusqu&#39;à 2 → 4 → 6 → 10 → 18 € sous −25 €), reprise 5 € et reset ; disponible aussi pour tiers, douzaine, carrés et pleins (transposition déclarée) ; mise de départ jamais sous 5 mises minimales (ni 8), relevée si besoin et signalée, pour que les crans restent distincts. Ultimate+ (stop zone B, 19/11) : Ultimate Roulette à l&#39;identique, plus un arrêt au 20e coup terminé en zone B dans la session (compte cumulé) ; disponible aussi pour les autres mises. Méthode bot 1 h (19/11) : 70 coups au plus et STOP dès l&#39;objectif atteint ; sous l&#39;objectif, mise = ce qui manque (au plus 20 % de la cave, jamais sous −50 % de la cave), plancher atteint : 1 € ; chances simples seulement. L&#39;avantage reste au casino avec toutes : 1,35 % de chaque mise sur chances simples avec La Partage, 2,70 % sur les autres mises.</div>
 <div class="mini" id="noteA" style="margin-top:6px"></div>
 <div class="mini" id="noteD" style="margin-top:6px"></div>
+<div id="lPrudent" style="display:none;margin-top:8px"><label for="rpOpt" style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="rpOpt" autocomplete="off" style="width:22px;height:22px"> <span><b>Radar prudent</b> (option, désactivée par défaut) : fiche V5 « Bouclier 20 € » sans la remise à 5 € — à +25 € : B de 5 € à 20 €, +2 € par échec, −2 € après une victoire en négatif, pas de verrou ; mêmes proportions de l'objectif aux autres réglages</span></label><div class="mini" id="notePrudent" style="margin-top:4px"></div></div>
 <label id="lCible" class="lab" style="display:none"><span id="tCible">Ta cible</span>
 <select id="cible" autocomplete="off"></select></label>
 <label id="lNb" class="lab" style="display:none"><span id="tNb">Nombre</span>
@@ -3447,6 +3448,43 @@ const D_B0 = 2, D_CAP = 8, D_PLUS = 1, D_MOINS = 2, D_N5 = 5, nomD = "Radar sér
 const D_HAUSSE_P2 = true;      // (a) échec au Palier 2 : B + 1 (texte de la fiche) ; false = B inchangé
 const D_BAISSE_SI_NEG = true;  // (b) victoire au Palier 2 : B − 2 seulement si bilan après la victoire < 0 (texte) ; false = toujours (tableau du stress-test)
 const D_VERROU_P2 = true;      // (c) victoire au Palier 2 sous l'objectif : Palier 1 au coup suivant sur la MÊME chance (verrou, lecture confirmée par Fabrice 13:01)
+// v24 : PROFILS de la base B, en drapeaux configurables (s.rp = clé du profil ; absent = Radar séries v23, inchangé).
+// Montants : { pas: x } = x pas (1 pas = 1/10 de l'objectif arrondi au jeton) ; { obj: x } = x × l'objectif ; arrondis au jeton, au moins 1 jeton ; null = valeur v23.
+//   baseStart (B de départ, v23 : 2 pas) · step (hausse après un échec, v23 : 1 pas) · down (baisse après une victoire au Palier 2 en négatif, v23 : 2 pas)
+//   cap (plafond de B, v23 : 8 pas ; jamais sous baseStart) · resetWhenPositive (B revient à baseStart dès que le bilan est > 0 après un coup misé)
+//   verrouOff : false = verrou v23 (Palier 1 sur la même chance après une victoire au Palier 2) ; "obs" = 1 coup d'observation forcée à 0 € ; "radar" = retour direct au radar.
+// ===== PRÉRÉGLAGES (un seul endroit) =====
+// Profil 1 = l'option « Radar prudent » de l'appli = « V5 Bouclier 20 € SANS la remise à 5 € » (décision de Fabrice, 20/11 23:04).
+//   À +25 € (réglage de référence) : B 5 € au départ, +2 € après chaque échec (P1 ou P2), −2 € après une victoire au Palier 2 seulement si le bilan
+//   reste négatif, plafond 20 € (Palier 2 = 2 × B, donc 40 € au plus), pas de verrou (après une victoire au P2 : 1 coup d'observation à 0 €), pas de remise à 5 €.
+//   Autres objectifs : MÊMES PROPORTIONS de l'objectif (base 1/5, ±8 %, plafond 4/5), arrondies au jeton, au moins 1 jeton. Ex. +50 € : 10 / ±4 / 40 € ; +10 € : 2 / ±1 / 8 €.
+//   Pour la V5 telle qu'écrite (remise à 5 € dès que le bilan est positif) : resetWhenPositive: true (= profil "v5" ci-dessous).
+// Profil "v5" : V5 telle qu'écrite sur la fiche (avec la remise), gardée pour comparaison, PAS proposée dans l'appli.
+// Profil "c20" : 1re version du « Radar prudent » (hausse 2/5 de pas, plafond 4 pas ; +50 € : +2 €, plafond 20 €), remplacée, PAS proposée.
+const D_PROFILS = {
+  1: { nom: "Radar prudent", baseStart: { obj: 0.2 }, step: { obj: 0.08 }, down: { obj: 0.08 }, cap: { obj: 0.8 }, resetWhenPositive: false, verrouOff: "obs" },
+  v5: { nom: "V5 Bouclier 20 € (avec remise à 5 €)", baseStart: { obj: 0.2 }, step: { obj: 0.08 }, down: { obj: 0.08 }, cap: { obj: 0.8 }, resetWhenPositive: true, verrouOff: "obs" },
+  c20: { nom: "Radar prudent (1re version)", baseStart: null, step: { pas: 2 / 5 }, down: null, cap: { pas: 4 }, resetWhenPositive: false, verrouOff: false }
+};
+const montantD = (spec, obj, p, def) => spec == null ? def : Math.max(1, Math.round(spec.pas != null ? p * spec.pas : obj * spec.obj));
+function profilD(obj, rp) {   // montants en jetons
+  const p = pasD(obj), f = rp ? D_PROFILS[rp] : null, b0 = f ? montantD(f.baseStart, obj, p, D_B0 * p) : D_B0 * p;
+  return { p, b0, h: f ? montantD(f.step, obj, p, D_PLUS * p) : D_PLUS * p, m: f ? montantD(f.down, obj, p, D_MOINS * p) : D_MOINS * p,
+    cap: Math.max(b0, f ? montantD(f.cap, obj, p, D_CAP * p) : D_CAP * p), reset: !!(f && f.resetWhenPositive), verrou: f && f.verrouOff ? f.verrouOff : D_VERROU_P2 ? "verrou" : "radar", nom: f ? f.nom : "" };
+}
+function regleProfilD(obj, rp) {   // v24 : règle du profil en clair, avec les valeurs du réglage (en jetons)
+  const f = D_PROFILS[rp], P = profilD(obj, rp);
+  return f.nom + " : B part de " + P.b0 + " €, +" + P.h + " € après chaque échec (Palier 1 ou 2), −" + P.m + " € après une victoire au Palier 2 seulement si le bilan reste négatif (minimum " + P.b0 + " €), plafond " + P.cap + " € (Palier 2 au plus " + 2 * P.cap + " €)" +
+    (P.verrou === "obs" ? " ; pas de verrou : après une victoire au Palier 2, 1 coup d'observation à 0 €" : P.verrou === "radar" ? " ; pas de verrou : retour au radar" : " ; verrou comme le Radar") +
+    (P.reset ? " ; B revient à " + P.b0 + " € dès que le bilan est positif" : " ; pas de remise à " + P.b0 + " € quand le bilan est positif") + " ; jamais plus que ce qui manque pour l'objectif ni que le reste de la cave.";
+}
+function avecRPD(s, rp) {   // v24 : applique un profil à une session Radar neuve
+  if (s.v === "D" && rp && D_PROFILS[rp]) {
+    s.rp = rp;
+    s.rB = profilD(s.obj, rp).b0;
+  }
+  return s;
+}
 const D_ORDRE = ["Rouge/Noir", "Pair/Impair", "Manque/Passe"];
 const pasD = (obj) => Math.max(1, Math.round(obj / 10));
 const caveConseilD = (obj) => 30 * obj;
@@ -3499,6 +3537,8 @@ function choixD(s) {
   const reste = Math.min(manqueD(s), resteD(s));
   if (s.pal === 2)
     return { mise: Math.min(2 * s.rm, reste), chance: s.rc, pal: 2, r: null };
+  if (s.pal === 4)   // v24 (profil sans verrou, "obs") : observation forcée après une victoire au Palier 2
+    return { mise: 0, chance: "", pal: 0, r: null, obsP2: true };
   if (s.pal === 3)   // verrou après une victoire au Palier 2 : Palier 1 sur la même chance
     return { mise: Math.min(s.rB, reste), chance: s.rc, pal: 1, r: { chance: s.rc, f: familleCh(s.rc), alt: -1 }, verrou: true };
   const r = radarD(s.rd);
@@ -3510,7 +3550,7 @@ function choixD(s) {
 function pasDx(s, x) {
   if (s.fin || s.bilan >= s.obj)
     return s.fin ? s : { ...s, fin: "OBJECTIF" };
-  const c = choixD(s), p = s.u, cap = D_CAP * p, b0 = D_B0 * p;
+  const c = choixD(s), P = profilD(s.obj, s.rp), cap = P.cap, b0 = P.b0, hausse = P.h;
   let bilan = s.bilan, rB = s.rB, pal = 0, rc = "", rm = 0, ev = "obs", serie = s.serie;
   if (c.mise > 0) {
     if (x === 0) {
@@ -3522,18 +3562,21 @@ function pasDx(s, x) {
         pal = 2; rc = c.chance; rm = c.mise; ev = "g1";
       } else {
         if (!D_BAISSE_SI_NEG || bilan < 0)
-          rB = Math.max(b0, rB - D_MOINS * p);
+          rB = Math.max(b0, rB - P.m);
         ev = "g2";
-        if (D_VERROU_P2) {
+        if (P.verrou === "verrou") {
           pal = 3; rc = c.chance;
-        }
+        } else if (P.verrou === "obs")
+          pal = 4;
       }
     } else {
       bilan -= c.mise;
       if (c.pal === 1 || D_HAUSSE_P2)
-        rB = Math.min(cap, rB + D_PLUS * p);
+        rB = Math.min(cap, rB + hausse);
       ev = "p" + c.pal;
     }
+    if (P.reset && bilan > 0)   // v24 : profil « retour à la base dès que le bilan est positif »
+      rB = b0;
     serie = ev === "g1" || ev === "g2" ? serie > 0 ? serie + 1 : 1 : serie < 0 ? serie - 1 : -1;
   }
   const rd = s.rd.concat([x]);
@@ -3554,6 +3597,8 @@ function conseilD(s0) {
     etat = "Paroli Palier 2 sur " + c.chance + " : série confirmée, on réinvestit la mise et le gain (" + s.rm + " + " + s.rm + " €)" + ici;
   else if (c.verrou)
     etat = "Verrou : la série " + c.chance + " continue après la victoire au Palier 2 → Palier 1 = B sur " + c.chance + " (même chance)" + ici;
+  else if (c.obsP2)
+    etat = "Victoire au Palier 2 : pas de verrou (" + profilD(s.obj, s.rp).nom + ") → observation, mise 0 €" + ici;
   else if (c.pal === 1)
     etat = "Doublet " + c.chance + " – " + c.chance + " détecté (" + D_ORDRE[c.r.f] + ") : Palier 1 = B, on mise la continuation" + ici;
   else
@@ -3585,11 +3630,13 @@ function jouerD(s0, x) {
     regles.push("Gain au Palier 1 : série confirmée → Paroli Palier 2 au coup suivant (" + 2 * b + " € sur " + ch + ")");
   } else if (n.ev === "g2") {
     res = "gagné";
-    regles.push("Gain au Palier 2 : victoire (+3 B net sur la série) ; " + (n.rB !== s.rB ? "bilan sous 0 € → B diminue de 2 (" + s.rB + " → " + n.rB + " €)" : s.rB === D_B0 * s.u && n.bilan < 0 ? "B déjà au minimum (" + n.rB + " €)" : "bilan ≥ 0 € → B inchangé (" + n.rB + " €)") + (n.pal === 3 ? " ; sous l'objectif : verrou, Palier 1 sur " + ch + " au coup suivant" : ""));
+    regles.push("Gain au Palier 2 : victoire (+3 B net sur la série) ; " + (n.rB !== s.rB ? (n.bilan > 0 && profilD(s.obj, s.rp).reset ? "bilan positif → B revient à la base (" + s.rB + " → " + n.rB + " €)" : "bilan sous 0 € → B diminue de " + (s.rp ? profilD(s.obj, s.rp).m + " €" : "2") + " (" + s.rB + " → " + n.rB + " €)") : s.rB === profilD(s.obj, s.rp).b0 && n.bilan < 0 ? "B déjà au minimum (" + n.rB + " €)" : "bilan ≥ 0 € → B inchangé (" + n.rB + " €)") + (n.pal === 3 ? " ; sous l'objectif : verrou, Palier 1 sur " + ch + " au coup suivant" : n.pal === 4 && !n.fin ? " ; pas de verrou : observation au coup suivant" : ""));
   } else {
     res = "perdu";
-    regles.push((c.pal === 1 ? "Échec au Palier 1 (faux départ)" : "Échec au Palier 2 (protection Paroli : perte nette limitée à B)") + " → B augmente de 1 (" + s.rB + " → " + n.rB + " €" + (n.rB === D_CAP * s.u ? ", plafond " + n.rB + " €" : "") + ")");
+    regles.push((c.pal === 1 ? "Échec au Palier 1 (faux départ)" : "Échec au Palier 2 (protection Paroli : perte nette limitée à B)") +  (profilD(s.obj, s.rp).reset && n.bilan > 0 ? " → bilan positif, B revient à la base (" + s.rB + " → " + n.rB + " €)" : " → B augmente de " + (s.rp ? profilD(s.obj, s.rp).h + " € (" + profilD(s.obj, s.rp).nom + ")" : "1") + " (" + s.rB + " → " + n.rB + " €" + (n.rB === profilD(s.obj, s.rp).cap ? ", plafond " + n.rB + " €" : "") + ")"));
   }
+  if (b > 0 && (x === 0 || n.ev === "g1") && profilD(s.obj, s.rp).reset && n.bilan > 0 && n.rB !== s.rB)   // v24 : profil « retour à la base si bilan positif »
+    regles.push("Bilan positif → B revient à la base (" + s.rB + " → " + n.rB + " €)");
   if (n.fin === "CAVE_VIDE") {
     action = "Cave vide : fin de session, ne recharge pas";
     regles.push(nomD + " : tapis sous 1 € → fin de session, on ne recharge pas");
@@ -3615,16 +3662,17 @@ const D_MC_N = 1000000, D_MC_PAQUET = 25000, D_MC_GRAINE = 20261120, D_MC_MAXCOU
 // Monte-Carlo : morceau de sessions [k0, k1) ; acc cumule les résultats (sessions indépendantes, graine = D_MC_GRAINE + numéro de session).
 // Version rapide (variables simples, sans objet) des MÊMES règles que pasDx ; l'égalité avec pasDx est vérifiée par les tests (preuves/radar).
 const D_SENS = (() => { const t = []; for (let x = 0; x <= 36; x++) t.push(x === 0 ? [2, 2, 2] : [estRouge(x) ? 0 : 1, x % 2 === 0 ? 0 : 1, x <= 18 ? 0 : 1]); return t; })();
-function mcDMorceau(obj, cave, k0, k1, acc, trace) {
-  const p = pasD(obj), b0 = D_B0 * p, cap = D_CAP * p, inj = !!injouableD(obj, cave), rd = new Int8Array(D_N5);
+function mcDMorceau(obj, cave, k0, k1, acc, trace, rp, maxc) {   // v24 : rp = Radar prudent ; maxc = coups au plus (défaut D_MC_MAXCOUPS)
+  const PR = profilD(obj, rp), p = PR.p, b0 = PR.b0, cap = PR.cap, hausse = PR.h, moins = PR.m, VER = PR.verrou === "verrou" ? 3 : PR.verrou === "obs" ? 4 : 0, RESET = PR.reset, MAXC = maxc || D_MC_MAXCOUPS, inj = !!injouableD(obj, cave), rd = new Int8Array(D_N5);
   for (let k = k0; k < k1; k++) {
     const al = aleaD(D_MC_GRAINE + k);
     let bilan = 0, B = b0, pal = 0, rf = 0, rv = 0, rm = 0, n = 0, coups = 0, nO = 0, mis = 0, bas = 0, maxm = 0, fin = inj ? 2 : 0;
-    while (!fin && coups < D_MC_MAXCOUPS) {
+    while (!fin && coups < MAXC) {
       const x = Math.floor(al() * 37), S = D_SENS[x], reste = Math.min(Math.ceil(obj - bilan - 0.000000001), Math.floor(cave + bilan + 0.000000001));   // v23 : plafond manque
       let m = 0, f = -1, v = 0, pj = 0;
       if (pal === 2) { m = Math.min(2 * rm, reste); f = rf; v = rv; pj = 2; }
       else if (pal === 3) { m = Math.min(B, reste); f = rf; v = rv; pj = 1; }
+      else if (pal === 4) { }   // v24 : observation forcée (profil sans verrou)
       else if (n >= 2) {
         const a = rd[(n - 1) % D_N5], b = rd[(n - 2) % D_N5];
         if (a !== 0 && b !== 0) {
@@ -3642,15 +3690,16 @@ function mcDMorceau(obj, cave, k0, k1, acc, trace) {
       pal = 0;
       if (m > 0) {
         if (x === 0) bilan -= m / 2;
-        else if (S[f] === v) { bilan += m; if (pj === 1) { pal = 2; rf = f; rv = v; rm = m; } else { if (!D_BAISSE_SI_NEG || bilan < 0) B = Math.max(b0, B - D_MOINS * p); if (D_VERROU_P2) pal = 3; } }
-        else { bilan -= m; if (pj === 1 || D_HAUSSE_P2) B = Math.min(cap, B + D_PLUS * p); }
+        else if (S[f] === v) { bilan += m; if (pj === 1) { pal = 2; rf = f; rv = v; rm = m; } else { if (!D_BAISSE_SI_NEG || bilan < 0) B = Math.max(b0, B - moins); pal = VER; } }
+        else { bilan -= m; if (pj === 1 || D_HAUSSE_P2) B = Math.min(cap, B + hausse); }
+        if (RESET && bilan > 0) B = b0;
       } else nO++;
       rd[n % D_N5] = x; n++; coups++; mis += m; if (m > maxm) maxm = m; if (bilan < bas) bas = bilan;
       if (trace) trace.push(m, bilan, B);
       fin = Math.floor(cave + bilan + 0.000000001) < 1 ? 2 : bilan >= obj ? 1 : 0;
     }
     acc.n++;
-    if (fin === 1) acc.obj++; else if (fin === 2) acc.cave++; else acc.tronq++;
+    if (fin === 1) acc.obj++; else if (fin === 2) acc.cave++; else { acc.tronq++; if (bilan < 0) acc.tronqNeg = (acc.tronqNeg || 0) + 1; }
     acc.somme += bilan; acc.mis += mis; acc.coups += coups; acc.obs += nO; acc.bas += bas;
     if (maxm > acc.max) acc.max = maxm;
     if (bas < acc.pire) acc.pire = bas;
@@ -3660,10 +3709,10 @@ function mcDMorceau(obj, cave, k0, k1, acc, trace) {
   return acc;
 }
 // Même session, par le moteur de l'appli (pasDx) : sert à vérifier mcDMorceau (tests)
-function sessionDLente(obj, cave, k, trace) {
+function sessionDLente(obj, cave, k, trace, rp, maxc) {
   const al = aleaD(D_MC_GRAINE + k);
-  let s = nouvelleD("Rouge", obj, cave);
-  while (!s.fin && s.coups < D_MC_MAXCOUPS) { s = pasDx(s, Math.floor(al() * 37)); if (trace) trace.push(s.mise, s.bilan, s.rB); }
+  let s = avecRPD(nouvelleD("Rouge", obj, cave), rp);
+  while (!s.fin && s.coups < (maxc || D_MC_MAXCOUPS)) { s = pasDx(s, Math.floor(al() * 37)); if (trace) trace.push(s.mise, s.bilan, s.rB); }
   return s;
 }
 const accD = () => ({ n: 0, obj: 0, cave: 0, tronq: 0, somme: 0, mis: 0, coups: 0, obs: 0, bas: 0, max: 0, pire: 0, hist: {} });
@@ -3673,22 +3722,23 @@ function finMcD(acc) {
     ecartP: 1.96 * Math.sqrt(acc.obj / n * (1 - acc.obj / n) / n) };
 }
 const MC_D = {}, MC_D_EN = {};
-const cleMcD = (o, c) => o + "/" + c + "/" + D_MC_N;
-const mcDPret = (o, c) => !!MC_D[cleMcD(o, c)];
+let RP_COURANT_D = 0;   // v24 : Radar prudent de la session affichée (mis à jour par l'écran) ; sert quand rp n'est pas précisé (départs)
+const cleMcD = (o, c, rp) => { const r = rp === undefined ? RP_COURANT_D : rp; return o + "/" + c + "/" + D_MC_N + (r ? r === 1 ? "/prudent" : "/" + r : ""); };   // v24 : clé à part pour Radar prudent
+const mcDPret = (o, c, rp) => !!MC_D[cleMcD(o, c, rp)];
 // Tâches (une par paquet de 25 000 sessions) : à enchaîner sans bloquer l'écran ; la dernière range le résultat dans MC_D
-function mcDTaches(o, c) {
-  const k = cleMcD(o, c);
+function mcDTaches(o, c, rp) {
+  const k = cleMcD(o, c, rp);
   if (MC_D[k]) return [];
   const acc = MC_D_EN[k] || (MC_D_EN[k] = { acc: accD(), fait: 0 }), t = [];
   for (let k0 = 0; k0 < D_MC_N; k0 += D_MC_PAQUET)
-    t.push(function () { if (MC_D[k] || acc.fait !== k0) return; mcDMorceau(o, c, k0, Math.min(D_MC_N, k0 + D_MC_PAQUET), acc.acc); acc.fait = k0 + D_MC_PAQUET; if (acc.fait >= D_MC_N) { MC_D[k] = finMcD(acc.acc); delete MC_D_EN[k]; } });
+    t.push(function () { if (MC_D[k] || acc.fait !== k0) return; mcDMorceau(o, c, k0, Math.min(D_MC_N, k0 + D_MC_PAQUET), acc.acc, null, rp); acc.fait = k0 + D_MC_PAQUET; if (acc.fait >= D_MC_N) { MC_D[k] = finMcD(acc.acc); delete MC_D_EN[k]; } });
   return t;
 }
-function mcD(o, c) {   // synchrone (tests, Node)
-  mcDTaches(o, c).forEach((f) => f());
-  return MC_D[cleMcD(o, c)];
+function mcD(o, c, rp) {   // synchrone (tests, Node)
+  mcDTaches(o, c, rp).forEach((f) => f());
+  return MC_D[cleMcD(o, c, rp)];
 }
-const mcDAvance = (o, c) => { const e = MC_D_EN[cleMcD(o, c)]; return MC_D[cleMcD(o, c)] ? 1 : e ? e.fait / D_MC_N : 0; };
+const mcDAvance = (o, c, rp) => { const e = MC_D_EN[cleMcD(o, c, rp)]; return MC_D[cleMcD(o, c, rp)] ? 1 : e ? e.fait / D_MC_N : 0; };
 // Plusieurs sessions : P(toutes réussies) = P^N, moyenne N × E ; médiane et percentiles par la loi empirique (grille de 0,5) convoluée N fois (FFT)
 function statsND(st, N) {
   const ks = Object.keys(st.hist).map(Number).sort((a, b) => a - b), m0 = ks[0], m1 = ks[ks.length - 1], W = N * (m1 - m0) + 1;
@@ -3701,14 +3751,15 @@ function statsND(st, N) {
   const q = (z) => { let c = 0; for (let k = 0; k < W; k++) { if (ar[k] > 1e-15) c += ar[k]; if (c >= z - 0.000000000001) return (N * m0 + k) / 2; } return (N * m0 + W - 1) / 2; };
   return { N, tousReussis: Math.pow(st.P, N), auMoinsUneCaveVide: 1 - Math.pow(st.P, N), esperance: N * st.E, mediane: q(0.5), p5: q(0.05), p95: q(0.95) };
 }
-function echelleD(obj) {
-  const p = pasD(obj), l = [];
-  for (let b = D_B0 * p; b <= D_CAP * p; b += p) l.push(b);
-  return { p, B0: D_B0 * p, cap: D_CAP * p, liste: l, p2max: 2 * D_CAP * p };
+function echelleD(obj, rp) {   // v24 : rp = Radar prudent (hausse et plafond réduits)
+  const P = profilD(obj, rp), p = P.p, l = [], h = P.h, cap = P.cap;
+  for (let b = P.b0; b < cap; b += h) l.push(b);
+  l.push(cap);
+  return { p, B0: P.b0, cap, liste: l, p2max: 2 * cap, h, m: P.m };
 }
-const misesDTxt = (o, c) => { const e = echelleD(o); return "observation (0 €) sans doublet ; Palier 1 = B, Palier 2 = 2 × B ; B = " + e.liste.join(" → ") + " € (+" + e.p + " € par échec, plafond " + e.cap + " €, −" + 2 * e.p + " € après une victoire en négatif)"; };
-function rappelD(st) {
-  return nomD + " : le radar choisit quand miser et sur quelle chance, la base B le montant. L'avantage reste au casino : tu perds en moyenne 1,35 % de tout ce que tu mises (chances simples, La Partage)" + (st ? " — Monte-Carlo " + st.n.toLocaleString("fr-FR") + " sessions pour tes réglages : atteindre l'objectif " + fp(st.P) + ", résultat moyen " + (st.E < 0 ? "−" : "+") + fm(st.E) + " par session." : ".");
+const misesDTxt = (o, c, rp) => { const e = echelleD(o, rp); return "observation (0 €) sans doublet ; Palier 1 = B, Palier 2 = 2 × B ; B = " + e.liste.join(" → ") + " € (+" + e.h + " € par échec" + (rp ? ", " + D_PROFILS[rp].nom : "") + ", plafond " + e.cap + " €, −" + e.m + " € après une victoire en négatif)"; };
+function rappelD(st, rp) {
+  return nomD + (rp ? " (" + D_PROFILS[rp].nom + ")" : "") + " : le radar choisit quand miser et sur quelle chance, la base B le montant. L'avantage reste au casino : tu perds en moyenne 1,35 % de tout ce que tu mises (chances simples, La Partage)" + (st ? " — Monte-Carlo " + st.n.toLocaleString("fr-FR") + " sessions pour tes réglages : atteindre l'objectif " + fp(st.P) + ", résultat moyen " + (st.E < 0 ? "−" : "+") + fm(st.E) + " par session." : ".");
 }
 const POINTS_D = [
   ["Radar", "on regarde les 3 paires (Rouge/Noir, Pair/Impair, Manque/Passe) ; on ne mise que s'il y a un doublet : les 2 derniers numéros identiques sur une paire (ex. Rouge – Rouge) ; on mise la continuation."],
@@ -3725,13 +3776,23 @@ function departsD(o, c) {
   return DEPARTS.map((d) => ({ id: d.id, nom: d.nom, u: e.p, S1: e.B0, S2: 0, S3: 0, D: 0, dispo: d.id === "normal", raison: d.id === "normal" ? "" : "Pas de départ réduit en " + nomD + " : la base B part de 2 pas (1 pas = 1/10 de l'objectif) — prends le départ normal.", note: "" }));
 }
 // ===== FIN RADAR SÉRIES =====
-// v23 : Monte-Carlo Radar séries pré-calculé (1 000 000 de sessions, graine fixe, MÊME fonction mcDMorceau, plafond « ce qui manque » inclus) pour le réglage de la fiche (+10 € / 300 €) avec chaque jeton ;
+// v23 (repris en v24) : Monte-Carlo Radar séries pré-calculé (1 000 000 de sessions, graine fixe, MÊME fonction mcDMorceau, plafond « ce qui manque » inclus) pour le réglage de la fiche (+10 € / 300 €) avec chaque jeton ;
 // les autres réglages sont calculés dans l'appli (mêmes résultats : la graine est fixe). Contrôle : preuves/v23/gen_mc_pre23.log.
 MC_D["10/300/1000000"] = {"n":1000000,"P":0.951887,"Pcave":0.048113,"Ptronq":0,"E":-4.856596,"mis":357.206483,"coups":56.992107,"obs":0.2054209717145569,"bas":-36.628575,"max":16,"pire":-300,"hist":{"20":855836,"21":96051,"-600":27296,"-599":20817},"ecartP":0.00041944979636401};
 MC_D["50/1500/1000000"] = {"n":1000000,"P":0.952074,"Pcave":0.047926,"Ptronq":0,"E":-24.2267555,"mis":1780.482705,"coups":56.862634,"obs":0.20550017081516134,"bas":-182.7897395,"max":80,"pire":-1500,"hist":{"100":855634,"101":96440,"-3000":27277,"-2999":20649},"ecartP":0.0004186749871795525};
 MC_D["20/600/1000000"] = {"n":1000000,"P":0.952109,"Pcave":0.047891,"Ptronq":0,"E":-9.69067,"mis":711.727672,"coups":56.820508,"obs":0.20552396328452396,"bas":-73.0843315,"max":32,"pire":-600,"hist":{"40":949297,"41":2812,"-1200":47203,"-1199":688},"ecartP":0.00041852977440123715};
 MC_D["5/150/1000000"] = {"n":1000000,"P":0.959702,"Pcave":0.040298,"Ptronq":0,"E":-1.2078955,"mis":90.59326,"coups":17.972368,"obs":0.2754515709894211,"bas":-16.7538765,"max":16,"pire":-150,"hist":{"10":894409,"11":65293,"-300":29002,"-299":11296},"ecartP":0.00038544819613866844};
 MC_D["2/60/1000000"] = {"n":1000000,"P":0.963074,"Pcave":0.036926,"Ptronq":0,"E":-0.27183,"mis":18.337363,"coups":7.142912,"obs":0.43069745224356676,"bas":-5.9766445,"max":16,"pire":-60,"hist":{"4":933428,"5":29646,"-120":31408,"-119":5518},"ecartP":0.000369617081267896};
+// v24 : Radar prudent (profil 1 = V5 sans remise à 5 €), Monte-Carlo pré-calculé (mêmes graines, sans limite de coups) ; contrôle : preuves/v24/gen_pre24.log
+MC_D["10/300/1000000/prudent"] = {"n":1000000,"P":0.953435,"Pcave":0.046565,"Ptronq":0,"E":-4.379284,"mis":325.651881,"coups":53.099014,"obs":0.3056880491227201,"bas":-36.3603565,"max":16,"pire":-300,"hist":{"20":860944,"21":92491,"-599":19241,"-600":27324},"ecartP":0.0004129822825464064};
+MC_D["50/300/1000000/prudent"] = {"n":1000000,"P":0.842075,"Pcave":0.157925,"Ptronq":0,"E":-5.271591,"mis":384.372263,"coups":19.522726,"obs":0.3363787413704418,"bas":-93.1111565,"max":80,"pire":-300,"hist":{"100":838893,"101":3182,"-600":156789,"-599":1136},"ecartP":0.0007147545046454761};
+MC_D["50/1500/1000000/prudent"] = {"n":1000000,"P":0.95357,"Pcave":0.04643,"Ptronq":0,"E":-21.9643575,"mis":1630.939071,"coups":53.90081,"obs":0.30386114791224844,"bas":-182.2880095,"max":80,"pire":-1500,"hist":{"100":949607,"101":3963,"-3000":46108,"-2999":322},"ecartP":0.0004124123887471858};
+MC_D["20/600/1000000/prudent"] = {"n":1000000,"P":0.953677,"Pcave":0.046323,"Ptronq":0,"E":-8.7185985,"mis":648.921128,"coups":52.949568,"obs":0.3057507098074908,"bas":-72.541766,"max":32,"pire":-600,"hist":{"40":950992,"41":2685,"-1200":45685,"-1199":638},"ecartP":0.0004119600143510455};
+MC_D["5/150/1000000/prudent"] = {"n":1000000,"P":0.95326,"Pcave":0.04674,"Ptronq":0,"E":-2.189293,"mis":162.505171,"coups":52.538653,"obs":0.30370300890660445,"bas":-17.991192,"max":8,"pire":-150,"hist":{"10":861914,"11":91346,"-300":27272,"-299":19468},"ecartP":0.0004137196135208482};
+MC_D["2/60/1000000/prudent"] = {"n":1000000,"P":0.955765,"Pcave":0.044235,"Ptronq":0,"E":-0.699746,"mis":51.56647,"coups":33.891477,"obs":0.31404072475212574,"bas":-6.862793,"max":4,"pire":-60,"hist":{"4":885881,"5":69884,"-120":28471,"-119":15764},"ecartP":0.00040300891052139293};
+MC_D["25/300/1000000/prudent"] = {"n":1000000,"P":0.908604,"Pcave":0.091396,"Ptronq":0,"E":-4.6272495,"mis":338.777031,"coups":27.546332,"obs":0.3208876230780926,"bas":-63.658115,"max":40,"pire":-300,"hist":{"50":775896,"51":132708,"-600":71203,"-599":20193},"ecartP":0.0005648159963921476};   // réglage de référence de la fiche V5
+// v24 : sessions de 70 coups au plus (1 000 000 chacune, graines 20261120 + k), Radar normal contre Radar prudent, en jetons (obj/cave) — note à côté de l'option ; contrôle : preuves/v24/mc70_*.json
+const MC70_PRUDENT_D = {"10/300":{"normal":{"P":0.865888,"Pcave":0.000006,"P70neg":0.131263,"E":-1.6313765},"prudent":{"P":0.87019,"Pcave":0.000007,"P70neg":0.126946,"E":-1.5826945}},"100/300":{"normal":{"P":0.734258,"Pcave":0.265742,"P70neg":0,"E":-6.295731},"prudent":{"P":0.733568,"Pcave":0.266424,"P70neg":0.000007,"E":-6.5715665}},"15/300":{"normal":{"P":0.899137,"Pcave":0.017168,"P70neg":0.082224,"E":-2.4312785},"prudent":{"P":0.866782,"Pcave":0.002433,"P70neg":0.127772,"E":-2.447253}},"20/300":{"normal":{"P":0.866354,"Pcave":0.021092,"P70neg":0.109707,"E":-3.1896845},"prudent":{"P":0.870657,"Pcave":0.020427,"P70neg":0.106053,"E":-3.095861}},"25/300":{"normal":{"P":0.887467,"Pcave":0.066789,"P70neg":0.043967,"E":-3.6576475},"prudent":{"P":0.868559,"Pcave":0.047003,"P70neg":0.081474,"E":-3.803871}},"30/300":{"normal":{"P":0.865918,"Pcave":0.077203,"P70neg":0.05426,"E":-4.3094115},"prudent":{"P":0.866245,"Pcave":0.074263,"P70neg":0.056791,"E":-4.388804}},"40/300":{"normal":{"P":0.858654,"Pcave":0.123051,"P70neg":0.016948,"E":-4.844971},"prudent":{"P":0.857829,"Pcave":0.122646,"P70neg":0.017988,"E":-4.9745575}},"5/300":{"normal":{"P":0.931553,"Pcave":0.000004,"P70neg":0.067801,"E":-0.87095},"prudent":{"P":0.869779,"Pcave":0,"P70neg":0.127417,"E":-0.75387}},"50/300":{"normal":{"P":0.840021,"Pcave":0.15548,"P70neg":0.004075,"E":-5.1661255},"prudent":{"P":0.839637,"Pcave":0.155357,"P70neg":0.00444,"E":-5.259571}},"60/300":{"normal":{"P":0.817985,"Pcave":0.181119,"P70neg":0.000785,"E":-5.368719},"prudent":{"P":0.817213,"Pcave":0.181625,"P70neg":0.000985,"E":-5.5503675}},"75/300":{"normal":{"P":0.785358,"Pcave":0.214611,"P70neg":0.000028,"E":-5.4736365},"prudent":{"P":0.783743,"Pcave":0.216108,"P70neg":0.000123,"E":-5.9930085}}};
 
 // ===== INTERFACE (fichier HTML autonome) =====
 var CLE_S = 'roulette_v3_session';   // ancienne sauvegarde (v17 et avant) : reprise une fois puis remplacée
@@ -3778,7 +3839,8 @@ function reprendre(d) {
   if (s0.jt !== undefined && (M || s0.jt === 100 || JET_S.indexOf(s0.jt) < 0)) return false;   // v20 : jeton (chances simples ; absent = 1 €)
   if (!d.nums.every(function (x) { return typeof x === 'number' && x % 1 === 0 && x >= 0 && x <= 36; })) return false;
   METH = methDe(d.meth); if (!M) METH = methDe(s0.v);
-  var p0 = M ? nouvelleM(s0.jeu, s0.obj, s0.cave) : avecJT(avecCJ(nouvelle(s0.chanceFixe, s0.obj, s0.cave, depDe(s0.dep)), s0.v === 'D' ? s0.cjG : s0.cj), s0.jt);   // v22 : cjG (Radar séries)
+  if (s0.rp !== undefined && (M || s0.v !== 'D' || s0.rp !== 1)) return false;   // v24 : Radar prudent
+  var p0 = M ? nouvelleM(s0.jeu, s0.obj, s0.cave) : avecRPD(avecJT(avecCJ(nouvelle(s0.chanceFixe, s0.obj, s0.cave, depDe(s0.dep)), s0.v === 'D' ? s0.cjG : s0.cj), s0.jt), s0.rp);   // v22 : cjG (Radar séries) ; v24 : rp
   if (JSON.stringify(p0) !== JSON.stringify(s0)) return false;
   pile = [p0]; lignes = [];
   for (var i = 0; i < d.nums.length; i++) if (!pas(d.nums[i])) { if (etat().fin === 'OBJECTIF' && pile.length > 1) { HIST.tronque = d.nums.length - i; break; } return false; }   // v20 : sauvegarde v19 jouée après l'objectif → arrêt au STOP
@@ -3814,10 +3876,10 @@ function dpDe(o, c, dep, fin) {
   setTimeout(function () { var d = dpCache(o, c, depDe(dep)); calcOff(); fin(d); }, 30);
 }
 // « Nouvelle session » : bilan à 0 € avec les réglages appliqués (affichés en haut) ; l'écran ne bouge pas.
-function nouvelleSession() { var s = etat(), jt = jetS(); pile = [estM(s) ? nouvelleM(s.jeu, s.obj, s.cave) : avecJT(avecCJ(nouvelle(s.chanceFixe, s.obj, s.cave, depDe(s.dep)), s.v === 'D' ? s.cjG : s.cj), jt)]; lignes = []; MSG_SEL = ''; sauver(); rendre(); chargerBrouillon(etat()); majVerrou(); }
+function nouvelleSession() { var s = etat(), jt = jetS(); pile = [estM(s) ? nouvelleM(s.jeu, s.obj, s.cave) : avecRPD(avecJT(avecCJ(nouvelle(s.chanceFixe, s.obj, s.cave, depDe(s.dep)), s.v === 'D' ? s.cjG : s.cj), jt), s.v === 'D' && s.rp)]; lignes = []; MSG_SEL = ''; sauver(); rendre(); chargerBrouillon(etat()); majVerrou(); }   // v24 : Radar prudent gardé
 function saisir(x) { if (!pas(x)) return; MSG_SEL = ''; sauver(); rendre(); }   // v18 : même coup qu'avant (pas), puis sauvegarde
 function annuler() { if (pile.length > 1) { pile.pop(); lignes.pop(); sauver(); rendre(); if (!lignes.length) chargerBrouillon(etat()); } }
-function rendre() { var s = etat(); if (estM(s)) return dpDeM(s, function (dp) { rendreAvecM(s, dp); }); if (s.v === 'D') return rendreAvecD(s);   // v22 : Radar séries (Monte-Carlo)
+function rendre() { var s = etat(); RP_COURANT_D = !estM(s) && s.v === 'D' && s.rp ? 1 : 0; if (estM(s)) return dpDeM(s, function (dp) { rendreAvecM(s, dp); }); if (s.v === 'D') return rendreAvecD(s);   // v22 : Radar séries (Monte-Carlo)
   dpDe(s.obj, s.cave, s.dep, function (dp) { rendreAvec(s, dp); }); }
 function rendreAvec(s, dp) {
   if (s.v === 'A') return rendreAvecA(s, dp);   // v16 : Méthode bot
@@ -4072,15 +4134,15 @@ function dessinerFicheA(f) {
 }
 (function () { var a = $('regleA'); if (a) a.innerHTML = regleAHtml(null); var n = $('noteA'); if (n) n.innerHTML = '<b>' + nomA + ' en 5 lignes</b>' + cinqLignesAHtml(); })();
 // ===== FIN INTERFACE MÉTHODE BOT 1 H =====
-// ===== v22 : INTERFACE de « Radar séries » (fiche V4 du 20/11) — utilisée seulement quand la session est en clé "D" =====
+// ===== v22 (v24 : + Radar prudent) : INTERFACE de « Radar séries » (fiche V4 du 20/11) — utilisée seulement quand la session est en clé "D" =====
 // Statistiques : Monte-Carlo de 1 000 000 de sessions (calculé par paquets, l'écran reste fluide ; résultats fixes : graine fixe).
 var MC_D_COURS = '';
-function lancerMcD(o, c) {
-  var k = cleMcD(o, c); if (mcDPret(o, c) || MC_D_COURS === k) return;
+function lancerMcD(o, c, rp) {   // v24 : rp = Radar prudent (Monte-Carlo à part)
+  var k = cleMcD(o, c, rp); if (mcDPret(o, c, rp) || MC_D_COURS === k) return;
   MC_D_COURS = k; calcOn();
-  chaine(mcDTaches(o, c), function () { MC_D_COURS = ''; calcOff(); var s = etat(); if (!estM(s) && s.v === 'D') rendre(); });
+  chaine(mcDTaches(o, c, rp), function () { MC_D_COURS = ''; calcOff(); var s = etat(); if (!estM(s) && s.v === 'D') rendre(); });
 }
-function attenteMcD(o, c) { return 'Monte-Carlo en cours : ' + Math.round(100 * mcDAvance(o, c)) + ' % du million de sessions…'; }
+function attenteMcD(o, c, rp) { return 'Monte-Carlo en cours : ' + Math.round(100 * mcDAvance(o, c, rp)) + ' % du million de sessions…'; }
 // Règles de la fiche, sans montant (montants de la fiche à +10 € / 300 € écrits en toutes lettres) : ce bloc n'est pas converti selon le jeton
 var POINTS_D_FICHE = [
   ['Radar (3 paires)', 'Rouge/Noir, Pair/Impair, Manque/Passe observées en même temps. On ne mise que si au moins une paire montre un doublet : les 2 derniers numéros identiques (ex. Rouge – Rouge) ; on mise la continuation.'],
@@ -4101,11 +4163,11 @@ function regleDHtml() {
     '<p class="mini">' + esc(RAPPEL_D) + '</p>';
 }
 function regleDValHtml(s) {
-  var e = echelleD(s.obj);
-  return '<p><b>' + nomD + ' — appliquée à cette session.</b> Tes valeurs : pas ' + e.p + ' € · B = ' + e.liste.join(' → ') + ' € · Palier 2 au plus ' + e.p2max + ' € · objectif +' + s.obj + ' € · cave ' + s.cave + ' €' + (s.cave < caveConseilD(s.obj) ? ' (fiche : cave conseillée 30 × l\'objectif = ' + caveConseilD(s.obj) + ' €)' : '') + '.</p>';
+  var e = echelleD(s.obj, s.rp);
+  return '<p><b>' + nomD + (s.rp ? ' (' + D_PROFILS[s.rp].nom + ')' : '') + ' — appliquée à cette session.</b> Tes valeurs : pas ' + e.p + ' € · B = ' + e.liste.join(' → ') + ' € · Palier 2 au plus ' + e.p2max + ' € · objectif +' + s.obj + ' € · cave ' + s.cave + ' €' + (s.cave < caveConseilD(s.obj) ? ' (fiche : cave conseillée 30 × l\'objectif = ' + caveConseilD(s.obj) + ' €)' : '') + '.</p>' + (s.rp ? '<p class="mini">' + esc(regleProfilD(s.obj, s.rp)) + '</p>' : '');   // v24
 }
 function cartesDHtml(st, s) {
-  if (!st) return '<div class="mini">' + esc(attenteMcD(s.obj, s.cave)) + '</div>';
+  if (!st) return '<div class="mini">' + esc(attenteMcD(s.obj, s.cave, s.rp)) + '</div>';
   return '<table><tr><td>Atteindre +' + s.obj + ' € (STOP)</td><td>' + pc(st.P) + '</td></tr><tr><td>Cave vide (−' + s.cave + ' €)</td><td>' + pc(st.Pcave) + '</td></tr>' +
     '<tr><td>Résultat moyen par session</td><td>' + eur2(st.E) + '</td></tr><tr><td>Total misé par session (moyenne)</td><td>' + fs2(Math.round(st.mis * 10) / 10) + ' €</td></tr>' +
     '<tr><td>Perte moyenne / total misé</td><td>' + (100 * st.E / st.mis).toFixed(2).replace('.', ',').replace('-', '−') + ' % (avantage casino 1,35 %)</td></tr>' +
@@ -4114,16 +4176,16 @@ function cartesDHtml(st, s) {
     '<div class="mini" style="margin-top:6px">Monte-Carlo : ' + st.n.toLocaleString('fr-FR') + ' sessions simulées avec les règles de la fiche (graine fixe ; marge sur la réussite ± ' + (100 * st.ecartP).toFixed(2).replace('.', ',') + ' point à 95 %). Pas de calcul exact : le radar dépend des 5 derniers numéros. <b>Chaque coup est indépendant : les numéros sortis ne changent pas ces chiffres.</b></div>';
 }
 function rendreAvecD(s) {
-  var c = conseil(s), el = $('conseil'), d = lignes[lignes.length - 1], st = MC_D[cleMcD(s.obj, s.cave)] || null, e = echelleD(s.obj);
-  if (!st) lancerMcD(s.obj, s.cave);
+  var c = conseil(s), el = $('conseil'), d = lignes[lignes.length - 1], st = MC_D[cleMcD(s.obj, s.cave, s.rp)] || null, e = echelleD(s.obj, s.rp);
+  if (!st) lancerMcD(s.obj, s.cave, s.rp);
   el.className = 'carte conseil' + (s.fin === 'OBJECTIF' ? ' stop' : (s.fin ? ' out' : ''));
-  var rap = '<div class="etat">' + esc(rappelD(st)) + '</div>';
+  var rap = '<div class="etat">' + esc(rappelD(st, s.rp)) + '</div>';
   if (s.fin === 'OBJECTIF') el.innerHTML = '<div class="mise">STOP ✔</div><div class="etat" style="font-size:18px;font-weight:700">Objectif +' + s.obj + ' € atteint — bilan ' + eur(s.bilan) + ' au coup ' + s.coups + '</div><div class="etat">Encaisse et arrête la session : plus aucune mise (' + nomD + ', consigne 1 : arrêt immédiat).</div>' + rap;
   else if (s.fin) el.innerHTML = '<div class="mise">FIN</div><div class="etat" style="font-size:18px;font-weight:700">' + (s.coups ? 'Cave vide — stop-loss −' + s.cave + ' €' : esc(injouableD(s.obj, s.cave) || 'Session terminée')) + '</div><div class="etat">Fin de session, ne recharge pas (' + nomD + ').</div>' + rap;
-  else if (!c.mise) el.innerHTML = '<div class="lab">' + nomD + ' · ' + (s.coups ? 'Coup n° ' + (s.coups + 1) : 'Premier coup') + ' · objectif +' + s.obj + ' € · cave ' + s.cave + ' €</div><div class="mise">Observation : 0 €</div><div class="etat">' + esc(c.etat) + '</div><div class="note">Ne mise pas : regarde le coup et touche le numéro sorti.</div><div class="note" style="opacity:.9">' + esc(rappelD(st)) + '</div>';
+  else if (!c.mise) el.innerHTML = '<div class="lab">' + nomD + (s.rp ? ' prudent' : '') + ' · ' + (s.coups ? 'Coup n° ' + (s.coups + 1) : 'Premier coup') + ' · objectif +' + s.obj + ' € · cave ' + s.cave + ' €</div><div class="mise">Observation : 0 €</div><div class="etat">' + esc(c.etat) + '</div><div class="note">Ne mise pas : regarde le coup et touche le numéro sorti.</div><div class="note" style="opacity:.9">' + esc(rappelD(st, s.rp)) + '</div>';
   else {
     var cc = c.chance === 'Rouge' ? 'ch-Rouge' : (c.chance === 'Noir' ? 'ch-Noir' : 'ch-autre');
-    el.innerHTML = '<div class="lab">' + nomD + ' · ' + (s.coups ? 'Coup n° ' + (s.coups + 1) : 'Premier coup') + ' · Palier ' + c.pal + ' · objectif +' + s.obj + ' € · cave ' + s.cave + ' €</div><div class="mise">Mise : ' + c.mise + ' € <span style="font-size:24px">sur</span> <span class="ch ' + cc + '">' + c.chance + '</span></div><div class="etat">' + esc(c.etat) + '</div>' + (c.note ? '<div class="note">' + esc(c.note) + ' (' + nomD + ')</div>' : '') + '<div class="note" style="opacity:.9">' + esc(rappelD(st)) + '</div>';   // v23 : plafond affiché comme les autres versions
+    el.innerHTML = '<div class="lab">' + nomD + (s.rp ? ' prudent' : '') + ' · ' + (s.coups ? 'Coup n° ' + (s.coups + 1) : 'Premier coup') + ' · Palier ' + c.pal + ' · objectif +' + s.obj + ' € · cave ' + s.cave + ' €</div><div class="mise">Mise : ' + c.mise + ' € <span style="font-size:24px">sur</span> <span class="ch ' + cc + '">' + c.chance + '</span></div><div class="etat">' + esc(c.etat) + '</div>' + (c.note ? '<div class="note">' + esc(c.note) + ' (' + nomD + ')</div>' : '') + '<div class="note" style="opacity:.9">' + esc(rappelD(st, s.rp)) + '</div>';   // v23 : plafond affiché comme les autres versions
   }
   var lo = -s.cave, hi = s.obj, pos = function (v) { return (100 * (v - lo) / (hi - lo)).toFixed(2) + '%'; };
   var j = ''; [[lo, '−' + fJS(s.cave)], [0, '0'], [hi, '+' + fJS(s.obj)]].forEach(function (m) { j += '<div class="tk" style="left:' + pos(m[0]) + '"></div><div class="mk" style="left:' + pos(m[0]) + '">' + m[1] + '</div>'; });
@@ -4145,7 +4207,7 @@ function rendreAvecD(s) {
       '<tr><td>Toutes finissent à +' + s.obj + ' € ou plus</td><td>' + pc(a.tousReussis) + '</td></tr><tr><td>Au moins une session ratée (cave vide)</td><td>' + pc(a.auMoinsUneCaveVide) + '</td></tr>' +
       '<tr><td>Résultat moyen total</td><td>' + eur2(a.esperance) + '</td></tr><tr><td>Total médian</td><td>' + eur(a.mediane) + '</td></tr><tr><td>5 % des cas : moins de</td><td>' + eur(a.p5) + '</td></tr><tr><td>95 % des cas : moins de</td><td>' + eur(a.p95) + '</td></tr></table>' +
       '<div class="mini">P(toutes réussies) = p<sup>N</sup> avec p = ' + pc(st.P) + ' ; résultat moyen = N × ' + eur2(st.E) + ' ; médiane et percentiles : loi des 1 000 000 de sessions simulées, convoluée N fois. La session en cours n\'est pas recalculée (le radar dépend des derniers numéros).</div>'; }
-  else $('nsess').innerHTML = '<h2>Sur plusieurs sessions (Monte-Carlo)</h2><div class="mini">' + esc(attenteMcD(s.obj, s.cave)) + '</div>';
+  else $('nsess').innerHTML = '<h2>Sur plusieurs sessions (Monte-Carlo)</h2><div class="mini">' + esc(attenteMcD(s.obj, s.cave, s.rp)) + '</div>';
   var ng = 0, np = 0, nz = 0, no = 0, mise = 0, max = 0, bas = 0;
   lignes.forEach(function (l) { if (l.res === 'gagné') ng++; else if (l.res === 'zéro') nz++; else if (l.res === 'observation') no++; else np++; mise += l.mise; max = Math.max(max, l.mise); bas = Math.min(bas, l.bilan); });
   $('stats').innerHTML = '<div><b>' + lignes.length + '</b><span>Coups (dont ' + no + ' observés)</span></div><div><b><span class="g">' + ng + '</span> / <span class="p">' + np + '</span> / <span class="zz">' + nz + '</span></b><span>Gains / pertes / zéros (coups misés)</span></div><div><b>' + eur(mise, false) + '</b><span>Total misé</span></div>' +
@@ -4164,12 +4226,14 @@ function rendreAvecD(s) {
   $('annuler').disabled = pile.length < 2; reancrer();
 }
 function dessinerFicheD(p) {
-  var st = MC_D[cleMcD(p.obj, p.cave)] || null, e = echelleD(p.obj), tr = function (a, b) { return '<tr><td>' + a + '</td><td>' + b + '</td></tr>'; };
-  if (!st) lancerMcD(p.obj, p.cave);
-  var h = '<h2>Fiche conseil</h2><div><b>+' + p.obj + ' € sur ' + p.cave + ' € · ' + nomD + '</b><br><span class="mini">ratio ' + (100 * p.obj / p.cave).toFixed(2).replace('.', ',') + ' % · 1 pour ' + fs2(p.cave / p.obj) + '</span></div>';
+  var se = etat(), rp = !estM(se) && se.v === 'D' && se.rp ? 1 : 0;   // v24 : Radar prudent (réglage appliqué)
+  p = rp ? { obj: p.obj, cave: p.cave, dep: p.dep, jeu: p.jeu, rp: 1 } : p;
+  var st = MC_D[cleMcD(p.obj, p.cave, rp)] || null, e = echelleD(p.obj, rp), tr = function (a, b) { return '<tr><td>' + a + '</td><td>' + b + '</td></tr>'; };
+  if (!st) lancerMcD(p.obj, p.cave, rp);
+  var h = '<h2>Fiche conseil</h2><div><b>+' + p.obj + ' € sur ' + p.cave + ' € · ' + nomD + (rp ? ' (' + D_PROFILS[rp].nom + ')' : '') + '</b><br><span class="mini">ratio ' + (100 * p.obj / p.cave).toFixed(2).replace('.', ',') + ' % · 1 pour ' + fs2(p.cave / p.obj) + '</span></div>';
   if (p.cave < caveConseilD(p.obj)) h += '<div class="conseil">Cave plus petite que celle conseillée par la fiche (30 × l\'objectif = ' + caveConseilD(p.obj) + ' €) : le risque de cave vide monte (chiffres ci-dessous).</div>';
   if (e.p * 10 !== p.obj) h += '<div class="conseil">1 pas = ' + e.p + ' € (1/10 de l\'objectif arrondi au jeton) : les mises ne sont pas exactement proportionnelles à la fiche.</div>';
-  h += '<h3>Tes mises avec ce réglage (' + nomD + ')</h3><table>' + tr('Observation (pas de doublet)', '0 €') + tr('Palier 1 = B', e.liste.join(' → ') + ' €') + tr('Paroli Palier 2 = 2 × B', 2 * e.B0 + ' à ' + e.p2max + ' €') + tr('Échec (Palier 1 ou 2)', 'B + ' + e.p + ' € (plafond ' + e.cap + ' €)') + tr('Victoire au Palier 2, bilan sous 0', 'B − ' + 2 * e.p + ' € (minimum ' + e.B0 + ' €)') + tr('Objectif atteint', 'STOP : plus aucune mise') + '</table>';
+  h += '<h3>Tes mises avec ce réglage (' + nomD + ')</h3><table>' + tr('Observation (pas de doublet)', '0 €') + tr('Palier 1 = B', e.liste.join(' → ') + ' €') + tr('Paroli Palier 2 = 2 × B', 2 * e.B0 + ' à ' + e.p2max + ' €') + tr('Échec (Palier 1 ou 2)', 'B + ' + e.h + ' € (plafond ' + e.cap + ' €)' + (rp ? ' — Radar prudent' : '')) + tr('Victoire au Palier 2, bilan sous 0', 'B − ' + e.m + ' € (minimum ' + e.B0 + ' €)') + tr('Objectif atteint', 'STOP : plus aucune mise') + '</table>';
   h += '<h3>Une session (Monte-Carlo, 1 million de sessions)</h3>' + cartesDHtml(st, p);
   h += '<div class="conseil">' + esc(RAPPEL_D) + '</div>';
   $('fiche').innerHTML = h; reancrer();
@@ -4604,7 +4668,7 @@ function brouillonModifie() {
   if (String(b.obj) !== String(s.obj) || String(b.cave) !== String(s.cave)) return true;
   if (!estM(s) && !b.jeu && b.jt !== jetS()) return true;   // v20 : jeton
   if (estM(s)) return !b.jeu || cleJeu(b.jeu) !== cleJeu(s.jeu);
-  return !!b.jeu || b.chance !== s.chanceFixe || b.dep !== depDe(s.dep) || b.meth !== methDe(s.v) || b.cj !== cjDe(s.v === 'D' ? s.cjG : s.cj);   // v22 : Radar séries garde la Chance jouée choisie (cjG)
+  return !!b.jeu || b.chance !== s.chanceFixe || b.dep !== depDe(s.dep) || b.meth !== methDe(s.v) || b.cj !== cjDe(s.v === 'D' ? s.cjG : s.cj) || (b.meth === 'D' && rpBrouillon() !== (s.rp ? 1 : 0));   // v22 : Radar séries garde la Chance jouée choisie (cjG) ; v24 : Radar prudent
 }
 // Remet le brouillon sur les réglages appliqués (au chargement, après « Valider », « Nouvelle session », « Annuler », 1er coup)
 function chargerBrouillon(s) {
@@ -4615,12 +4679,33 @@ function chargerBrouillon(s) {
     if (g === 'plein' || g === 'carre') { SEL[g] = posDe(s.jeu).slice(); $('nb').value = String(SEL[g].length); }
     $('meth').value = s.jeu.v === 'R' || s.jeu.v === 'U' ? s.jeu.v : '2.1'; $('cj').value = 'fixe'; }
   else { $('mode').value = s.chanceFixe; $('meth').value = methDe(s.v); $('cj').value = cjDe(s.v === 'D' ? s.cjG : s.cj); }   // v22 : Radar séries → choix gardés
+  if ($('rpOpt')) $('rpOpt').checked = !estM(s) && s.v === 'D' ? !!s.rp : memoRP();   // v24 : Radar prudent (session Radar : son réglage ; sinon le dernier choix gardé)
   DEP_B = depDe(estM(s) ? s.jeu.dep : s.dep);
   MSG_SEL = ''; dessinerChoix(g, enCours()); majEtatReglages(); majDeparts();
 }
 // v22 : Radar séries choisi (chances simples) → chance et « Chance jouée » grisées et désactivées (valeurs gardées telles quelles), note visible ; autres versions : rien ne change
+// v24 : option « Radar prudent » : visible seulement sous Radar séries (chances simples), grisée pendant une session en cours comme les autres réglages
+function rpBrouillon() { var o = $('rpOpt'); return o && o.checked && $('genre').value === 'simple' && methDe($('meth').value) === 'D' ? 1 : 0; }   // v24 : profil 1 (Radar prudent) ou 0
+var CLE_RP = 'roulette_radar_prudent';
+function memoRP() { try { return localStorage.getItem(CLE_RP) === '1'; } catch (e) { return false; } }
+function notePrudentTxt() {
+  var k = jetonBrouillon() / 100, o = entier($('pObj').value), c = entier($('pCave').value), oj = Math.round(o / k), cj = Math.round(c / k), t = MC70_PRUDENT_D[oj + '/' + cj], lab;
+  if (t) lab = 'Simulation à ton réglage (+' + fEur(oj * k) + ' € / ' + fEur(cj * k) + ' €, 1 000 000 de sessions de 70 coups au plus)';
+  else { t = MC70_PRUDENT_D['25/300']; k = 1; lab = 'Chiffres simulés au réglage de référence +25 € / 300 € avec le jeton de 1 € (pas à ton réglage ; 1 000 000 de sessions de 70 coups au plus)'; }
+  var p = t.prudent, n = t.normal, f = function (x) { return (100 * x).toFixed(1).replace('.', ','); }, m = function (x) { return (x < 0 ? '−' : '+') + Math.abs(x * k).toFixed(2).replace('.', ',') + ' €'; };
+  var une = p.P70neg >= 0.1 ? '1 session sur ' + Math.round(1 / p.P70neg) + ' finit au coup 70 en perte (' + f(p.P70neg) + ' %)' : f(p.P70neg) + ' % des sessions finissent au coup 70 en perte';
+  return lab + ' : objectif ' + f(p.P) + ' % au lieu de ' + f(n.P) + ' % ; cave perdue ' + f(p.Pcave) + ' % au lieu de ' + f(n.Pcave) + ' % ; ' + une + ' ; moyenne ' + m(p.E) + ' par session (au lieu de ' + m(n.E) + '). ' + (Math.abs(p.Pcave - n.Pcave) < 0.005 && Math.abs(p.P - n.P) < 0.005 ? 'À ce réglage, Radar prudent change très peu de chose (plafond proche du Radar normal)' : (p.Pcave < n.Pcave - 0.0005 ? 'Tu perds moins souvent la cave' : 'Tu ne perds pas moins souvent la cave') + (p.P < n.P - 0.0005 ? ', mais tu atteins moins souvent l\'objectif' : ', et tu atteins l\'objectif au moins aussi souvent')) + (p.E < n.E ? ' ; la perte moyenne est plus grande' : ' ; la perte moyenne est un peu plus petite') + ' : l\'avantage reste au casino. Ces chiffres supposent l\'arrêt au coup 70 ; sans limite de coups, regarde les chances de la carte ci-dessous (calculées sans limite).';
+}
+function majPrudent(D, lock) {
+  var l = $('lPrudent'), o = $('rpOpt'); if (!l || !o) return;
+  if (!D) { if (l.style.display !== 'none') l.style.display = 'none'; return; }
+  if (l.style.display !== '') l.style.display = '';
+  metDesactive(o, lock); if (l.classList.contains('grise') !== !!lock) l.classList.toggle('grise', !!lock);
+  var tx = ''; try { tx = notePrudentTxt(); } catch (e) { tx = ''; } metTexte($('notePrudent'), tx);
+}
 function majChoixRadar(lock) {
   var D = methDe($('meth').value) === 'D' && $('genre').value === 'simple', n = $('noteRadarCh');
+  majPrudent(D, lock);   // v24
   if (D) { metDesactive($('mode'), true); metDesactive($('cj'), true); $('lMode').classList.add('grise'); $('lCJ').classList.add('grise'); if (n) n.style.display = ''; }
   else if ($('lMode').classList.contains('grise') || (n && n.style.display !== 'none')) { metDesactive($('mode'), lock); metDesactive($('cj'), lock); $('lMode').classList.remove('grise'); $('lCJ').classList.remove('grise'); if (n) n.style.display = 'none'; }
 }
@@ -4633,7 +4718,7 @@ function majEtatReglages() {
   if (lock) { metClasse(r, 'r-etat'); metTexte(r, ''); }
   else if (montre) { metClasse(r, 'r-etat err'); metTexte(r, 'À corriger avant de valider (en rouge ci-dessus). Rien n\'a été changé.'); }
   else if (mod) { metClasse(r, 'r-etat mod'); metTexte(r, 'Modifié, pas encore appliqué : touche « Valider les réglages ».'); }
-  else { metClasse(r, 'r-etat ok'); metTexte(r, CALC ? 'Calcul en cours…' : ('✓ Réglages appliqués : +' + s.obj + ' € sur ' + s.cave + ' € · ' + (estM(s) ? cibleNom(s.jeu) + ' · jeton ' + nomJeton(s.jeu.jeton) + (s.jeu.v === 'R' ? ' · Ultimate Roulette' : s.jeu.v === 'U' ? ' · ultimate+ (stop zone B)' : '') : 'chance ' + s.chanceFixe + (s.cj === 'bascule' ? ' · bascule miroir' : s.cj === 'coup' ? ' · miroir coup par coup' : '') + (methDe(s.v) !== '2.1' ? ' · ' + labN(s.v).toLowerCase().replace('version b', 'version B') : '')) + ' · ' + nomDep(estM(s) ? s.jeu.dep : s.dep).toLowerCase() + '.' + (s.fin ? ' Session terminée : « Valider les réglages » démarre la suivante.' : (lignes.length ? '' : ' Modifiable jusqu\'au 1er coup.')))); }
+  else { metClasse(r, 'r-etat ok'); metTexte(r, CALC ? 'Calcul en cours…' : ('✓ Réglages appliqués : +' + s.obj + ' € sur ' + s.cave + ' € · ' + (estM(s) ? cibleNom(s.jeu) + ' · jeton ' + nomJeton(s.jeu.jeton) + (s.jeu.v === 'R' ? ' · Ultimate Roulette' : s.jeu.v === 'U' ? ' · ultimate+ (stop zone B)' : '') : 'chance ' + s.chanceFixe + (s.cj === 'bascule' ? ' · bascule miroir' : s.cj === 'coup' ? ' · miroir coup par coup' : '') + (methDe(s.v) !== '2.1' ? ' · ' + labN(s.v).toLowerCase().replace('version b', 'version B') : '') + (s.v === 'D' && s.rp ? ' · Radar prudent' : '')) + ' · ' + nomDep(estM(s) ? s.jeu.dep : s.dep).toLowerCase() + '.' + (s.fin ? ' Session terminée : « Valider les réglages » démarre la suivante.' : (lignes.length ? '' : ' Modifiable jusqu\'au 1er coup.')))); }
   metDesactive($('valider'), lock);
   majChoixRadar(lock);   // v22
   metTexte($('valider'), s.fin && !mod ? 'Valider et démarrer la session suivante' : 'Valider les réglages');
@@ -4661,7 +4746,7 @@ function validerReglages(idAncre) {
   var b = lireBrouillon(); if (!b.ok) { majEtatReglages(); return false; }
   ancrer(idAncre || 'reglages');
   if (!b.jeu) METH = b.meth;   // méthode choisie (chances simples) : v2.1, v2.2, v3 complète ou B
-  pile = [b.jeu ? nouvelleM(b.jeu, b.obj, b.cave) : avecJT(avecCJ(nouvelle(b.chance, b.obj, b.cave, b.dep), b.cj), b.jt)]; lignes = []; MSG_SEL = ''; sauver();
+  pile = [b.jeu ? nouvelleM(b.jeu, b.obj, b.cave) : avecRPD(avecJT(avecCJ(nouvelle(b.chance, b.obj, b.cave, b.dep), b.cj), b.jt), rpBrouillon())]; lignes = []; MSG_SEL = ''; sauver();   // v24 : avecRPD (Radar prudent)
   TOUCHE = { obj: false, cave: false, sel: false }; rendre(); majVerrou(); return true;
 }
 function initReglages() {
@@ -4671,6 +4756,7 @@ function initReglages() {
     el.onkeydown = function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); validerReglages('reglages'); } }; });
   $('genre').onchange = function () { changerGenre(); majDeparts(); }; $('cible').onchange = majEtatReglages; $('jeton').onchange = function () { majEtatReglages(); majDeparts(); }; $('nb').onchange = function () { changerNb(); majDeparts(); }; $('mode').onchange = majEtatReglages; $('cj').onchange = majEtatReglages; $('meth').onchange = function () { majEtatReglages(); majDeparts(); };
   $('valider').onclick = function () { validerReglages('reglages'); };
+  if ($('rpOpt')) $('rpOpt').onchange = function () { try { if ($('rpOpt').checked) localStorage.setItem(CLE_RP, '1'); else localStorage.removeItem(CLE_RP); } catch (e) {} majEtatReglages(); majDeparts(); };   // v24 : Radar prudent
 }
 // --- Départ : 3 options (normal / plus petit / moyen), mises et disponibilité pour le brouillon ; réussite et perte pour les réglages validés ---
 function nomDep(d) { d = depDe(d); for (var i = 0; i < DEPARTS.length; i++) if (DEPARTS[i].id === d) return DEPARTS[i].nom; return 'Départ normal'; }
@@ -4684,7 +4770,7 @@ function majDeparts() {
     var mises = 'départ ' + fEur(x.S1) + ' € · paliers ' + fEur(x.S1) + ' / ' + fEur(x.S2) + ' / ' + fEur(x.S3) + ' €, +' + fEur(x.D) + ' € après une perte';
     if (b.meth === 'R' || b.meth === 'U') mises = misesRTxt(x.u, j);
     if (b.meth === 'A' && !j) mises = misesATxt(o, c);   // v16 : Méthode bot
-    else if (b.meth === 'D' && !j) mises = misesDTxt(o, c);   // v22 : Radar séries
+    else if (b.meth === 'D' && !j) mises = misesDTxt(o, c, rpBrouillon());   // v22 : Radar séries (v24 : Radar prudent)
     else if (!j && b.meth === '2.2') { var q2 = prm22({ cave: c, u: x.u }); mises = 'ouverture ' + q2.O + ' € · paliers ' + q2.B1 + ' / ' + q2.B2 + ' / ' + q2.B3 + ' €, +' + q2.D + ' € après une perte (v2.2)'; }
     else if (!j && estV3(b.meth)) { var q3 = prm3({ cave: c, u: x.u, v: b.meth }); mises = 'ouverture ' + q3.O + ' € · paliers ' + q3.B1 + ' / ' + q3.B2 + ' / ' + q3.B3 + ' €, +' + q3.D + ' € après une perte, max ' + q3.Cap + ' € (' + courtV3(b.meth) + ')'; }
     var st;
@@ -4701,7 +4787,7 @@ function majDeparts() {
 var STATS_DEP_EN_COURS = '';
 function lancerStatsDeparts() {
   var s = etat(), jS = estM(s) ? s.jeu : null, k = baseDep(s.obj, s.cave, jS); if (STATS_DEP_EN_COURS === k) return;
-  var t = !jS && METH === 'D' ? mcDTaches(s.obj, s.cave) : departsDe(s.obj, s.cave, jS).filter(function (x) { return x.dispo && !statDepartPret(s.obj, s.cave, jS, x.id); })
+  var t = !jS && METH === 'D' ? mcDTaches(s.obj, s.cave, s.rp ? 1 : 0) : departsDe(s.obj, s.cave, jS).filter(function (x) { return x.dispo && !statDepartPret(s.obj, s.cave, jS, x.id); })
     .map(function (x) { return function () { statDepart(s.obj, s.cave, jS, x.id); }; });
   if (!t.length) return majDeparts();
   STATS_DEP_EN_COURS = k; calcOn(); chaine(t, function () { STATS_DEP_EN_COURS = ''; calcOff(); majDeparts(); });
@@ -4724,13 +4810,13 @@ function essaiCalc() {
   var sv = { pile: pile, lignes: lignes, METH: METH, JS: JS }, r = null;
   try {
     if (!b.jeu) METH = b.meth;
-    pile = [b.jeu ? nouvelleM(b.jeu, b.obj, b.cave) : avecJT(avecCJ(nouvelle(b.chance, b.obj, b.cave, b.dep), b.cj), b.jt)]; lignes = [];
+    pile = [b.jeu ? nouvelleM(b.jeu, b.obj, b.cave) : avecRPD(avecJT(avecCJ(nouvelle(b.chance, b.obj, b.cave, b.dep), b.cj), b.jt), rpBrouillon())]; lignes = [];   // v24 : Radar prudent
     var s0 = etat(), M = estM(s0), k = M ? 1 : JS, joues = 0;
     for (var i = 0; i < ESSAI_NUMS.length; i++) { if (!pas(ESSAI_NUMS[i])) break; joues++; }
     var sf = etat(), L = lignes.map(function (l) { return { n: l.n, num: l.num, mise: l.mise, chance: l.chance, res: l.res, gain: l.gain, bilan: l.bilan, conseil: l.etatAvant, action: l.action }; });
     var mise = 0, bas = 0; L.forEach(function (l) { mise += l.mise; if (l.bilan < bas) bas = l.bilan; });
     r = { M: M, k: k, jt: M ? 0 : Math.round(k * 100), meth: M ? '' : (s0.v || METH), obj: s0.obj, cave: s0.cave, chance: b.chance, cj: M ? 'fixe' : b.cj,
-      version: M ? essaiTexteOpt('genre') : essaiTexteOpt('meth'), cjTxt: M ? '' : essaiTexteOpt('cj'), fin: sf.fin || '', joues: joues, lignes: L,
+      version: M ? essaiTexteOpt('genre') : essaiTexteOpt('meth') + (s0.v === 'D' && s0.rp ? ' · Radar prudent' : ''), cjTxt: M ? '' : essaiTexteOpt('cj'), fin: sf.fin || '', joues: joues, lignes: L,
       bilan: L.length ? L[L.length - 1].bilan : 0, mise: Math.round(mise * 100) / 100, bas: bas, aucunCoup: joues === 0 };
   } finally { pile = sv.pile; lignes = sv.lignes; METH = sv.METH; JS = sv.JS; }
   ESSAI_DERNIER = r; return r;
