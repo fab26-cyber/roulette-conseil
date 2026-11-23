@@ -1,5 +1,5 @@
-/* Roulette PWA — service worker hors ligne, version 1d46883785d8 (fichiers relus sur le réseau, sans le cache HTTP, à chaque nouvelle version) */
-const CACHE = 'roulette-1d46883785d8';
+/* Roulette PWA — service worker hors ligne, version feeb0654e208 (fichiers relus sur le réseau, sans le cache HTTP, à chaque nouvelle version) */
+const CACHE = 'roulette-feeb0654e208';
 const FICHIERS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FICHIERS.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

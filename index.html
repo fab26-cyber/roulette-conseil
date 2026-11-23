@@ -143,7 +143,7 @@ html{overflow-anchor:none}
 <select id="pivotC" autocomplete="off"><option value="2">2 (cylindre seulement)</option><option value="5">5</option><option value="8">8</option><option value="11">11</option><option value="14">14</option><option value="17" selected>17 (exemple du guide)</option><option value="20">20</option><option value="23">23</option><option value="26">26</option><option value="29">29</option><option value="32">32</option><option value="35">35 (cylindre seulement)</option></select></label>
 <label for="cyOpt" style="display:flex;gap:10px;align-items:center;font-size:15px;margin-top:6px"><input type="checkbox" id="cyOpt" autocomplete="off" style="width:22px;height:22px"> <span><b>Variante cylindre</b> (option, désactivée par défaut) : pleins sur le pivot et ses voisins de la roue (1, 3, 5, 7 numéros, puis 7 numéros à 2 jetons)</span></label>
 <label id="lPlOpt" for="plOpt" style="display:flex;gap:10px;align-items:center;font-size:15px;margin-top:6px"><input type="checkbox" id="plOpt" autocomplete="off" style="width:22px;height:22px"> <span><b>Couronne prolongée (18 € jusqu'au coup 10)</b> (option, désactivée par défaut) : si le Coup 5 est perdu, même pivot et 18 € (2 € partout) du Coup 6 au Coup 10 ; stop-loss : 1 cycle prolongé sans touche (−136 €) ; pas en variante cylindre</span></label>
-<label id="lRcOpt" for="rcOpt" style="display:flex;gap:10px;align-items:center;font-size:15px;margin-top:6px"><input type="checkbox" id="rcOpt" autocomplete="off" style="width:22px;height:22px"> <span><b>RadarCouronne</b> (option, désactivée par défaut ; fiche du 22/11) : Phase 1 sur les chances simples après un doublet (B 2 à 5 €, Paroli sécurisé), Phase 2 dès +12 € : Tir 1 croix 5 €, Tir 2 couronne 9 € sur un pivot de la colonne centrale ; stop-win +35 € ou pivot, stop-loss −45 € ; objectif 35 € et cave 300 € au jeton de 1 €</span></label><div class="mini" id="noteCouronne" style="margin-top:4px"></div></div>
+<label id="lRcOpt" for="rcOpt" style="display:flex;gap:10px;align-items:center;font-size:15px;margin-top:6px"><input type="checkbox" id="rcOpt" autocomplete="off" style="width:22px;height:22px"> <span><b>RadarCouronne V2.0</b> (option, désactivée par défaut ; fiche du 23/11) : Phase 1 sur les chances simples, palier 1 après un doublet (B 2 à 5 €, Paroli sécurisé), sinon Radar actif 1 € (Sniper si bilan ≥ 0, Surf si bilan < 0) ; Phase 2 systématique dès +8 € : Tir 1 croix 5 €, puis Tir 2 couronne 9 € sur un pivot de la colonne centrale ; stop-win +35 € ou pivot, stop-loss −45 € ; objectif 35 € et cave 300 € au jeton de 1 €</span></label><div class="mini" id="noteCouronne" style="margin-top:4px"></div></div>
 <div id="lRadarOpt" style="display:none;margin-top:8px"><label for="roOpt" style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="roOpt" autocomplete="off" style="width:22px;height:22px"> <span><b>Option Radar</b> (désactivée par défaut) : aucun coup d'attente ; sur un doublet au radar (2 derniers numéros identiques sur Rouge/Noir, Pair/Impair ou Manque/Passe), mise Radar séries ; sinon, mise normale de la méthode choisie</span></label><div class="mini" id="noteRO" style="margin-top:4px"></div></div>
 <div id="lPrudentX" style="display:none;margin-top:8px"><label for="xpOpt" style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="xpOpt" autocomplete="off" style="width:22px;height:22px"> <span><b>Prudent</b> (option, désactivée par défaut) : reprise du Radar prudent — aucune mise au-dessus de 4/5 de l'objectif (20 € à +25 €), et 1 coup d'observation après un Paroli complet</span></label><div class="mini" id="notePrudentX" style="margin-top:4px"></div></div>
 <label id="lCible" class="lab" style="display:none"><span id="tCible">Ta cible</span>
@@ -4388,7 +4388,12 @@ const mcCDe = (cave, cy, pl) => (typeof MC_C_PRE !== "undefined" && MC_C_PRE[cav
 const MC_C_PRE = {"150":{"P":0.435082,"Psl":0.357413,"Pcave":0.207505,"E":-4.8421,"mis":173.189,"coups":20.294,"n":1000000,"p0":0.364685},"300":{"P":0.471093,"Psl":0.503185,"Pcave":0.025722,"E":-5.8917,"mis":210.65,"coups":24.366,"n":1000000,"p0":0.364685},"300/cylindre":{"P":0.355363,"Psl":0.644637,"Pcave":0,"E":-2.2815,"mis":84.84,"coups":16.034,"n":1000000,"p0":0.508353},"150/cylindre":{"P":0.355363,"Psl":0.644637,"Pcave":0,"E":-2.2815,"mis":84.84,"coups":16.034,"n":1000000,"p0":0.508353}};
 MC_C_PRE["300/prolongee"] = {"P":0.556961,"Psl":0.295802,"Pcave":0.147237,"E":-7.9686,"mis":294.096,"coups":25.273,"n":1000000,"p0":0.090511};   // v28 : Couronne prolongée (18 € jusqu'au Coup 10)
 MC_C_PRE["150/prolongee"] = {"P":0.446806,"Psl":0.166263,"Pcave":0.386931,"E":-5.4789,"mis":196.019,"coups":17.441,"n":1000000,"p0":0.090511};   // v28 : Couronne prolongée (18 € jusqu'au Coup 10)
-// ===== v29 : OPTION « RadarCouronne » de La Couronne (fiche de Fabrice du 22/11 « MANUEL STRATÉGIQUE : LE SYSTÈME HYBRIDE RADARCOURONNE ») =====
+// ===== v30 : OPTION « RadarCouronne » V2.0 (fiche de Fabrice du 23/11 « SYSTÈME HYBRIDE RADAR-COURONNE (V2.0) ») — copie du moteur v29 modifiée =====
+// Différences avec la v29 : (1) seuil Phase 2 +8 (plafond vers +8 puis +35) ; (2) Radar actif sans doublet : bilan ≥ 0 « Sniper » 1 plein sur le dernier numéro central
+//   (2 à 35) sorti dans les 5 derniers coups (sinon 0), pivot touché = stop-win ; bilan < 0 « Surf » 1 sur la chance qui prolonge l'alternance de la paire la plus
+//   alternée sur 5 coups (égalité R/N, P/I, M/P) ; Surf perdu ou doublet formé → palier 1 avec B = 2 ; (3) Phase 2 systématique dès +8 après un coup de Phase 1 :
+//   pivot = dernier numéro central (5 à 32 ; variante B de l'étude : 2 à 35, croix incomplète) dans les 5 derniers coups, sinon on attend ; (4) Tir 2 toujours après un Tir 1 raté.
+// (en-tête v29 :)
 // Session en clé "C" avec le champ s.rc_on = 1 (option cochée ; absent sinon → Couronne et Couronne prolongée strictement inchangées).
 // Tous les champs propres à l'option commencent par « rc_ » (aucune collision possible avec les champs existants, cf. pl/cpl en v28).
 // Le moteur compte en jetons (1 jeton = 1 € de la fiche ; le jeton choisi multiplie tout). Cave 300, stop-win +35, stop-loss −45 (15 %).
@@ -4402,9 +4407,16 @@ MC_C_PRE["150/prolongee"] = {"P":0.446806,"Psl":0.166263,"Pcave":0.386931,"E":-5
 // PHASE 2 (bilan ≥ +12) : un numéro de la colonne centrale entre 5 et 32 sort sur un coup de Phase 1 → il devient le pivot (2 et 35 ignorés).
 //   Tir 1 (croix, 5) : pivot plein + 4 chevaux adjacents. Pivot → STOP-WIN ; bord → retour Phase 1 ; raté → Tir 2 seulement si bilan ≥ +15, sinon Phase 1.
 //   Tir 2 (couronne, 9) : croix + 4 carrés du pivot. Pivot → STOP-WIN ; bord, angle ou rien → retour Phase 1. Jamais de coups 3, 4, 5.
-const nomRC = "RadarCouronne", RC_OBJ = 35, RC_CAVE = 300, RC_SL = 45, RC_SEUIL = 12, RC_T2 = 15, RC_BMIN = 2, RC_BMAX = 5;
+const nomRC = "RadarCouronne", RC_VER = "V2.0", RC_OBJ = 35, RC_CAVE = 300, RC_SL = 45, RC_SEUIL = 8, RC_BMIN = 2, RC_BMAX = 5;
 const RC_PAIRES = [["Rouge", "Noir"], ["Pair", "Impair"], ["Manque", "Passe"]], RC_NOMP = ["R/N", "P/I", "M/P"];
-const RC_PIVOTS = [5, 8, 11, 14, 17, 20, 23, 26, 29, 32];
+const RC_CENTRE = [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35];
+let RC_BORDS = 0;   // étude : variante B (Couronne aussi sur 2 et 35, croix incomplète) ; l'appli garde 0 (réponse de Fabrice v29)
+const rcVariante = (b) => { RC_BORDS = b ? 1 : 0; };
+const rcPivotsCour = () => RC_BORDS ? RC_CENTRE : RC_CENTRE.slice(1, -1);
+function rcDernierCentral(h, L) { for (let k = h.length - 1; k >= 0; k--) if (L.indexOf(h[k]) >= 0) return h[k]; return 0; }
+const rcOk = (b) => b.every((x) => x >= 1 && x <= 36);
+function rcCroix(p) { const g = croixC(p); return { plein: g.plein, chevaux: g.chevaux.filter(rcOk), carres: g.carres.filter(rcOk) }; }
+const rcBords = (p) => bordsC(p).filter((x) => x >= 1 && x <= 36), rcAngles = (p) => anglesC(p).filter((x) => x >= 1 && x <= 36);
 const rcGrille = (B) => B <= 2 ? [2, 4, 6, 10] : B === 3 ? [3, 6, 10] : [B, 2 * B - 2];
 function rcCote(i, x) { if (!x) return null; const c = RC_PAIRES[i][0]; return gagne(c, x) ? c : RC_PAIRES[i][1]; }
 function rcAlternances(i, h) {   // changements entre coups consécutifs (zéros ignorés) sur les 5 derniers coups
@@ -4439,13 +4451,22 @@ function rcPlafond(s, nominal) {
 function choixRC(s) {
   if (s.fin) return { mise: 0, L: [], k: "fin" };
   if (s.rc_ph) {
-    const g = croixC(s.rc_pv), L = [{ t: "plein", n: g.plein, m: 1 }];
+    const g = rcCroix(s.rc_pv), L = [{ t: "plein", n: g.plein, m: 1 }];
     g.chevaux.forEach((n) => L.push({ t: "cheval", n, m: 1 }));
     if (s.rc_ph === 2) g.carres.forEach((n) => L.push({ t: "carre", n, m: 1 }));
     return { mise: totalC(L), L, k: s.rc_ph === 1 ? "t1" : "t2" };
   }
   let ch = s.rc_ch, pal = s.rc_pal, d = null;
-  if (!pal) { d = rcDoublets(s.rc_h); if (!d.length) return { mise: 0, L: [], k: "obs" }; ch = d[0].ch; pal = 1; }
+  if (!pal) { d = rcDoublets(s.rc_h);
+    if (!d.length) {   // V2.0 : Radar actif (1 € à plat)
+      if (s.bilan >= 0) { const p = rcDernierCentral(s.rc_h.slice(-5), RC_CENTRE); return p ? { mise: 1, L: [{ t: "plein", n: [p], m: 1 }], k: "sniper", pv: p } : { mise: 0, L: [], k: "obs" }; }
+      const h = s.rc_h, x = h[h.length - 1];
+      if (!x) return { mise: 0, L: [], k: "obs" };
+      let bi = 0, ba = -1; for (let i = 0; i < 3; i++) { const a = rcAlternances(i, h); if (a > ba) { ba = a; bi = i; } }
+      const c2 = RC_PAIRES[bi][0] === rcCote(bi, x) ? RC_PAIRES[bi][1] : RC_PAIRES[bi][0];
+      return { mise: 1, L: [{ t: "simple", n: rcNumsChance(c2), m: 1, ch: c2 }], k: "surf", ch: c2, paire: bi, alt: ba };
+    }
+    ch = d[0].ch; pal = 1; }
   const G = rcGrille(s.rc_B), nominal = G[pal - 1], p = rcPlafond(s, nominal);
   return { mise: p.mise, L: [{ t: "simple", n: rcNumsChance(ch), m: p.mise, ch }], k: pal === 1 ? "p1" : "par", ch, pal, nominal, plaf: p, d };
 }
@@ -4456,11 +4477,11 @@ function pasRC(s, x) {
   n.rc_h = s.rc_h.concat([x]).slice(-5);
   n.bilan = s.bilan + g; n.coups = s.coups + 1; n.serie = g > 0 ? (s.serie > 0 ? s.serie + 1 : 1) : g < 0 ? (s.serie < 0 ? s.serie - 1 : -1) : s.serie;
   if (c.k === "t1" || c.k === "t2") {
-    const piv = x === s.rc_pv, bord = bordsC(s.rc_pv).indexOf(x) >= 0, angle = anglesC(s.rc_pv).indexOf(x) >= 0;
+    const piv = x === s.rc_pv, bord = rcBords(s.rc_pv).indexOf(x) >= 0, angle = rcAngles(s.rc_pv).indexOf(x) >= 0;
     if (c.k === "t2") n.rc_t2 = (s.rc_t2 || 0) + 1;
     if (piv) { n.rc_piv = 1; ev.push(c.k + "Pivot"); }
     else if (bord) { n.rc_ph = 0; ev.push(c.k + "Bord"); }
-    else if (c.k === "t1") { if (n.bilan >= RC_T2) { n.rc_ph = 2; ev.push("t1RateT2"); } else { n.rc_ph = 0; ev.push("t1RateP1"); } }
+    else if (c.k === "t1") { n.rc_ph = 2; ev.push("t1RateT2"); }   // V2.0 : Tir 2 toujours
     else { n.rc_ph = 0; ev.push(angle ? "t2Angle" : "t2Rate"); }
     if (!n.rc_ph) { n.rc_pv = 0; n.rc_pal = 0; n.rc_ch = ""; }
   } else if (c.k === "p1" || c.k === "par") {
@@ -4480,15 +4501,21 @@ function pasRC(s, x) {
         else { n.rc_B = Math.min(RC_BMAX, s.rc_B + 1); ev.push("fauxDepart"); }
       } else ev.push("paroliCasse");
     }
+  } else if (c.k === "sniper") {
+    if (x === c.pv) { n.rc_piv = 2; ev.push("sniperPivot"); } else ev.push("sniperRate");
+  } else if (c.k === "surf") {
+    if (x !== 0 && g < 0) { n.rc_B = RC_BMIN; ev.push("surfPerdu"); }
+    else if (rcDoublets(n.rc_h).length) { n.rc_B = RC_BMIN; ev.push(x === 0 ? "surfZeroDoublet" : "surfGagneDoublet"); }
+    else ev.push(x === 0 ? "surfZero" : "surfGagne");
   } else ev.push("obs");
   if (n.rc_piv) n.fin = "OBJECTIF";
   else if (n.bilan >= RC_OBJ) n.fin = "OBJECTIF";
   else if (n.bilan <= -RC_SL) n.fin = "STOP_LOSS";
-  else if (!s.rc_ph && n.bilan >= RC_SEUIL && RC_PIVOTS.indexOf(x) >= 0) {   // déclenchement de la Phase 2 (seulement sur un coup de Phase 1)
+  else if (!s.rc_ph && n.bilan >= RC_SEUIL && rcDernierCentral(n.rc_h, rcPivotsCour())) {   // V2.0 : Phase 2 systématique (après un coup de Phase 1), pivot = dernier central des 5 derniers coups
     if (n.rc_pal >= 2) ev.push("paroliEncaisse");
-    n.rc_ph = 1; n.rc_pv = x; n.rc_pal = 0; n.rc_ch = ""; n.rc_na = (s.rc_na || 0) + 1; ev.push("attaque");
+    n.rc_ph = 1; n.rc_pv = rcDernierCentral(n.rc_h, rcPivotsCour()); n.rc_pal = 0; n.rc_ch = ""; n.rc_na = (s.rc_na || 0) + 1; ev.push("attaque");
   } else if (!s.rc_ph && n.bilan >= RC_SEUIL && (x === 2 || x === 35)) ev.push("ignore");
-  return { etat: n, c, g, ret, ev, res: x === 0 && b && c.k !== "t1" && c.k !== "t2" ? "zéro" : !b ? "observation" : g > 0 ? "gagné" : ret > 0 ? "touché" : "perdu" };
+  return { etat: n, c, g, ret, ev, res: x === 0 && b && (c.k === "p1" || c.k === "par" || c.k === "surf") ? "zéro" : !b ? "observation" : g > 0 ? "gagné" : ret > 0 ? "touché" : "perdu" };
 }
 // Vrais gains nets d'un tir (coup seul), calculés d'après les paiements (plein 35, cheval 17, carré 8)
 function tableRC() {
@@ -4502,11 +4529,13 @@ function rcPlacement(L) {
   return placementC(L);
 }
 function rcEtatTxt(s, c) {
-  if (s.rc_ph === 1) return "Phase 2 · Tir 1 (croix, 5 €) sur le pivot " + s.rc_pv + " — financé par les gains (bilan " + fEur(s.bilan) + " €)";
-  if (s.rc_ph === 2) return "Phase 2 · Tir 2 (couronne, 9 €) sur le pivot " + s.rc_pv + " — Tir 1 raté, bilan " + fEur(s.bilan) + " € ≥ +" + RC_T2 + " €";
+  if (s.rc_ph === 1) return "Phase 2 · Tir 1 (croix, " + c.mise + " €) sur le pivot " + s.rc_pv + " — financé par les gains (bilan " + fEur(s.bilan) + " €)";
+  if (s.rc_ph === 2) return "Phase 2 · Tir 2 (couronne, " + c.mise + " €) sur le pivot " + s.rc_pv + " — Tir 1 raté : Tir 2 toujours joué (V2.0)";
   const bTxt = "B = " + s.rc_B + " €" + (s.rc_lk ? " (verrouillée au plancher jusqu'au prochain gain)" : "") + " · faux départs d'affilée " + s.rc_fd;
   const ph2 = s.bilan >= RC_SEUIL ? " · bilan ≥ +" + RC_SEUIL + " € : Phase 2 armée, on attend un numéro de la colonne centrale (5 à 32)" : "";
-  if (c.k === "obs") return "Phase 1 · Observation (0 €) : aucune des 3 paires n'a de doublet · " + bTxt + ph2;
+  if (c.k === "obs") return "Phase 1 · Observation (0 €) : aucun doublet" + (s.bilan >= 0 ? " et aucun numéro de la colonne centrale dans les 5 derniers coups (pas de Sniper)" : "") + " · " + bTxt + ph2;
+  if (c.k === "sniper") return "Phase 1 · Radar actif « Sniper » (bilan ≥ 0, aucun doublet) : 1 € plein sur le " + c.pv + ", dernier numéro de la colonne centrale sorti — touché : stop-win · " + bTxt + ph2;
+  if (c.k === "surf") return "Phase 1 · Radar actif « Surf » (bilan < 0, aucun doublet) : 1 € sur " + c.ch + ", suite de l'alternance " + RC_NOMP[c.paire] + " (" + c.alt + (c.alt > 1 ? " alternances" : " alternance") + " sur 5 coups) — perdu ou doublet : palier 1 avec B = 2 € · " + bTxt;
   const G = rcGrille(s.rc_B), pal = c.pal, pl = c.mise < c.nominal ? " · plafond : il manque " + c.plaf.manque + " € pour +" + c.plaf.cible + " €" : "";
   const quoi = pal === 1 ? (s.rc_pal === 1 ? "palier 1 rejoué après le zéro" : "doublet " + RC_NOMP[rcPaireDe(c.ch)] + " → continuation") : "Paroli sécurisé palier " + pal + "/" + G.length + (pal === 3 && s.rc_B === 2 ? " (2 € mis en réserve)" : pal === 2 && s.rc_B >= 4 ? " (2 € gardés en poche)" : "") + (s.rc_pal && s.rc_h.length && s.rc_h[s.rc_h.length - 1] === 0 ? " (rejoué après le zéro)" : "");
   return "Phase 1 · " + quoi + " · palier " + pal + " = " + c.nominal + " € · " + bTxt + pl + ph2;
@@ -4514,15 +4543,15 @@ function rcEtatTxt(s, c) {
 function conseilRC(s0) {
   const s = norm(s0);
   if (s.fin) return { mise: 0, chance: "", etat: s.fin, note: "", L: [], placement: [], couverts: [] };
-  const c = choixRC(s), lab = c.k === "obs" ? "Observation" : c.k === "t1" ? "Tir 1 · pivot " + s.rc_pv : c.k === "t2" ? "Tir 2 · pivot " + s.rc_pv : c.ch;
+  const c = choixRC(s), lab = c.k === "obs" ? "Observation" : c.k === "sniper" ? "Sniper · plein " + c.pv : c.k === "surf" ? "Surf · " + c.ch : c.k === "t1" ? "Tir 1 · pivot " + s.rc_pv : c.k === "t2" ? "Tir 2 · pivot " + s.rc_pv : c.ch;
   return { mise: c.mise, chance: lab, etat: rcEtatTxt(s, c), note: "", L: c.L, placement: rcPlacement(c.L), couverts: couvertsC(c.L), k: c.k };
 }
 function jouerRC(s0, x) {
   const s = norm(s0);
   if (s.fin) return { etat: s, ligne: null };
   const cs = conseilRC(s), r = pasRC(s, x), n = r.etat, b = r.c.mise, regles = [];
-  const coup = r.c.k === "obs" ? "observation" : r.c.k === "t1" ? "Tir 1 (pivot " + s.rc_pv + ")" : r.c.k === "t2" ? "Tir 2 (pivot " + s.rc_pv + ")" : r.c.ch + " palier " + r.c.pal;
-  if (b) regles.push(coup + " : " + b + " € misés, " + (r.ret ? fEur(r.ret) + " € reçus" : "rien reçu") + " → " + (r.g >= 0 ? "+" : "") + fEur(r.g) + " €" + (x === 0 && (r.c.k === "p1" || r.c.k === "par") ? " (zéro : La Partage, la moitié de la mise est rendue)" : x === 0 ? " (zéro : pas de La Partage sur les numéros)" : ""));
+  const coup = r.c.k === "obs" ? "observation" : r.c.k === "sniper" ? "Sniper (plein " + r.c.pv + ")" : r.c.k === "surf" ? "Surf " + r.c.ch : r.c.k === "t1" ? "Tir 1 (pivot " + s.rc_pv + ")" : r.c.k === "t2" ? "Tir 2 (pivot " + s.rc_pv + ")" : r.c.ch + " palier " + r.c.pal;
+  if (b) regles.push(coup + " : " + b + " € misés, " + (r.ret ? fEur(r.ret) + " € reçus" : "rien reçu") + " → " + (r.g >= 0 ? "+" : "") + fEur(r.g) + " €" + (x === 0 && (r.c.k === "p1" || r.c.k === "par" || r.c.k === "surf") ? " (zéro : La Partage, la moitié de la mise est rendue)" : x === 0 ? " (zéro : pas de La Partage sur les numéros)" : ""));
   else regles.push("Observation à 0 € (aucun doublet)");
   for (const e of r.ev) {
     if (e === "zero") regles.push("Zéro : palier " + r.c.pal + ", chance " + r.c.ch + " et B inchangés → même mise au coup suivant");
@@ -4533,35 +4562,40 @@ function jouerRC(s0, x) {
     else if (e === "fauxDepart") regles.push("Faux départ " + n.rc_fd + "/3 : B monte de 1 € (" + s.rc_B + " → " + n.rc_B + " €, maximum " + RC_BMAX + " €)");
     else if (e === "verrou") regles.push("3e faux départ d'affilée : verrou V3, B revient à 2 € et y reste jusqu'au prochain gain");
     else if (e === "fauxDepartVerrou") regles.push("Faux départ (" + n.rc_fd + " d'affilée) : B reste verrouillée à 2 €");
-    else if (e === "attaque") regles.push("Bilan " + fEur(n.bilan) + " € ≥ +" + RC_SEUIL + " € et le " + x + " (colonne centrale) est sorti → Phase 2 : Tir 1 sur le pivot " + x);
+    else if (e === "attaque") regles.push("Bilan " + fEur(n.bilan) + " € ≥ +" + RC_SEUIL + " € → Phase 2 systématique : Tir 1 sur le pivot " + n.rc_pv + " (dernier numéro de la colonne centrale sorti)");
     else if (e === "paroliEncaisse") regles.push("Le Paroli en cours est encaissé (gains déjà au bilan) pour lancer l'attaque");
-    else if (e === "ignore") regles.push("Le " + x + " est au bord du tapis (pas de croix complète) : ignoré, on attend un autre numéro de la colonne centrale");
+    else if (e === "sniperPivot") regles.push("SNIPER : le " + x + " est sorti (+" + fEur(r.g) + " €) → stop-win immédiat, encaisse et quitte la table");
+    else if (e === "sniperRate") regles.push("Sniper raté (−1 €)");
+    else if (e === "surfPerdu") regles.push("Surf perdu : doublet formé → palier 1 avec B = 2 €");
+    else if (e === "surfGagneDoublet" || e === "surfZeroDoublet") regles.push("Surf : un doublet s'est formé → palier 1 avec B = 2 €");
+    else if (e === "surfGagne") regles.push("Surf gagné (+1 €) : rien d'autre ne change");
+    else if (e === "surfZero") regles.push("Zéro sur le Surf : la moitié de la mise est rendue");
+    else if (e === "ignore") regles.push("Le " + x + " est au bord du tapis : pas de Couronne sur ce pivot, on attend un autre numéro de la colonne centrale (5 à 32)");
     else if (e === "t1Pivot" || e === "t2Pivot") regles.push("PIVOT PLEIN : +" + fEur(r.g) + " € → stop-win immédiat, encaisse et quitte la table");
     else if (e === "t1Bord" || e === "t2Bord") regles.push("Bord gagné (+" + fEur(r.g) + " €) : encaisse, retour en Phase 1");
-    else if (e === "t1RateT2") regles.push("Tir 1 raté, bilan " + fEur(n.bilan) + " € ≥ +" + RC_T2 + " € → Tir 2 (couronne, 9 €) sur le même pivot");
-    else if (e === "t1RateP1") regles.push("Tir 1 raté, bilan " + fEur(n.bilan) + " € < +" + RC_T2 + " € → pas de Tir 2, retour en Phase 1");
+    else if (e === "t1RateT2") regles.push("Tir 1 raté → Tir 2 (couronne) sur le même pivot, toujours joué en V2.0");
     else if (e === "t2Angle") regles.push("Angle au Tir 2 (" + fEur(r.g) + " €) : on s'arrête, retour en Phase 1");
     else if (e === "t2Rate") regles.push("Tir 2 raté : retour en Phase 1 (jamais de Coup 3, 4 ou 5)");
   }
   let action;
-  if (n.fin === "OBJECTIF") { action = n.rc_piv ? "STOP : pivot plein tombé, encaisse et quitte la table (bilan " + fEur(n.bilan) + " €)" : "STOP : +" + RC_OBJ + " € atteint, encaisse et quitte la table"; regles.push(nomRC + (n.rc_piv ? " : pivot plein → stop-win immédiat quel que soit le montant" : " : stop-win +" + RC_OBJ + " € → encaisser et quitter la table")); }
+  if (n.fin === "OBJECTIF") { action = n.rc_piv === 2 ? "STOP : Sniper touché, encaisse et quitte la table (bilan " + fEur(n.bilan) + " €)" : n.rc_piv ? "STOP : pivot plein tombé, encaisse et quitte la table (bilan " + fEur(n.bilan) + " €)" : "STOP : +" + RC_OBJ + " € atteint, encaisse et quitte la table"; regles.push(nomRC + (n.rc_piv ? " : pivot plein → stop-win immédiat quel que soit le montant" : " : stop-win +" + RC_OBJ + " € → encaisser et quitter la table")); }
   else if (n.fin === "STOP_LOSS") { action = "Stop-loss −" + RC_SL + " € : fin de session, pas de recharge aujourd'hui"; regles.push(nomRC + " : stop-loss de session −" + RC_SL + " € (15 % de la cave) atteint (bilan " + fEur(n.bilan) + " €) → la journée est close, pas de recharge"); }
   else { const m = conseilRC(n); action = m.mise ? "mise suivante " + m.mise + " € (" + m.chance + ")" : "observation (0 €)"; }
   const ligne = { n: n.coups, num: x, mise: b, chance: nomRC + " · " + coup, res: r.res, gain: r.g, bilan: n.bilan, reste: s.cave + n.bilan, etatAvant: cs.etat, action, regles, suivante: n.fin ? n.fin : conseilRC(n).mise };
   return { etat: n, ligne };
 }
-const misesRCTxt = () => "Phase 1 : 0 € sans doublet, puis B = 2 à 5 € et Paroli sécurisé 2-4-6-10 / 3-6-10 / B-(2B−2) ; Phase 2 dès +12 € : Tir 1 croix 5 €, Tir 2 couronne 9 € ; stop-win +35 € ou pivot ; stop-loss −45 €";
-const RAPPEL_RC = "L'avantage reste au casino : 1,35 % de chaque mise sur les chances simples (La Partage), 2,70 % sur les pleins, chevaux et carrés. Aucune gestion de mise ne le supprime ; l'observation, le plancher à 2 € et le choix du pivot ne changent pas les chances.";
+const misesRCTxt = () => "V2.0 · Phase 1 : sans doublet Radar actif 1 € (Sniper si bilan ≥ 0, Surf si bilan < 0), doublet : B = 2 à 5 € et Paroli sécurisé 2-4-6-10 / 3-6-10 / B-(2B−2) ; Phase 2 systématique dès +8 € : Tir 1 croix 5 €, puis Tir 2 couronne 9 € ; stop-win +35 € ou pivot ; stop-loss −45 €";
+const RAPPEL_RC = "L'avantage reste au casino : 1,35 % de chaque mise sur les chances simples (La Partage), 2,70 % sur les pleins, chevaux et carrés. Aucune gestion de mise ne le supprime ; le Radar actif, le plancher à 2 € et le choix du pivot ne changent pas les chances.";
 // ===== Monte-Carlo (même moteur pasRC, graines D_MC_GRAINE + numéro de session : résultats fixes) =====
 function sessionRC(k, maxc) {
   const rnd = aleaD(D_MC_GRAINE + k), M = maxc || Infinity;
   let s = rcInit(nouvelleC("Rouge", RC_OBJ, RC_CAVE)), mis = 0, bas = 0;
   while (!s.fin && s.coups < M) { mis += choixRC(s).mise; s = pasRC(s, Math.floor(rnd() * 37)).etat; if (s.bilan < bas) bas = s.bilan; }
-  return { fin: s.fin ? (s.rc_piv ? "PIVOT" : s.fin) : "COUPS", bilan: s.bilan, coups: s.coups, mis, bas, na: s.rc_na || 0, t2: s.rc_t2 || 0 };
+  return { fin: s.fin ? (s.rc_piv === 2 ? "PIVOT_SNIPER" : s.rc_piv ? "PIVOT" : s.fin) : "COUPS", bilan: s.bilan, coups: s.coups, mis, bas, na: s.rc_na || 0, t2: s.rc_t2 || 0 };
 }
 const mcRCDe = (maxc) => (typeof MC_RC_PRE !== "undefined" && MC_RC_PRE[maxc ? String(maxc) : "illimite"]) || null;
-// v29 : Monte-Carlo RadarCouronne (mc/mc29.mjs, 1 000 000 de sessions par limite, même moteur, graine D_MC_GRAINE + k)
-const MC_RC_PRE = {"70":{"n":1000000,"max":70,"Pobj":0.145784,"Ppiv":0.048701,"Psl":0.214933,"Pcoups":0.590582,"E":-2.8969,"mis":202.402,"coups":58.78},"illimite":{"n":1000000,"max":0,"Pobj":0.287818,"Ppiv":0.093869,"Psl":0.618313,"Pcoups":0,"E":-5.6011,"mis":395.439,"coups":111.42}};
+// v30 : Monte-Carlo RadarCouronne V2.0 (mc/mc30.mjs, 1 000 000 de sessions par limite, même moteur, graine D_MC_GRAINE + k)
+const MC_RC_PRE = {"70":{"n":1000000,"max":70,"Pobj":0.090799,"PpivC":0.092891,"PpivS":0.026078,"Psl":0.234436,"Pcoups":0.555796,"E":-3.0006,"mis":196.855,"coups":57.1,"Pphase2":0.739109},"illimite":{"n":1000000,"max":0,"Pobj":0.145018,"PpivC":0.145185,"PpivS":0.034715,"Psl":0.675082,"Pcoups":0,"E":-5.2165,"mis":350.547,"coups":99.01,"Pphase2":0.785518}};
 
 // ===== INTERFACE (fichier HTML autonome) =====
 var CLE_S = 'roulette_v3_session';   // ancienne sauvegarde (v17 et avant) : reprise une fois puis remplacée
@@ -5281,7 +5315,7 @@ function majCouronne(lock) {
 }
 (function () { var a = $('regleC'); if (a) a.innerHTML = regleCHtml(); var n = $('noteC'); if (n) n.innerHTML = '<b>' + nomC + '</b> (10e version, guide du 22/11) : pleins, chevaux et carrés autour d\'un pivot de la colonne centrale (se règle avec « Chances simples » pour le jeton, mais la chance et la « Chance jouée » ne servent pas) ; objectif +60 € et cave 300 € ou 150 € (au jeton de 1 €) ; pas de La Partage : avantage du casino 2,70 %.'; })();
 // ===== FIN INTERFACE COURONNE =====
-// ===== v29 : INTERFACE de l'option « RadarCouronne » — utilisée seulement quand la session Couronne a s.rc_on = 1 (sinon rien ne change) =====
+// ===== v30 : INTERFACE de l'option « RadarCouronne » V2.0 (v29 modifiée) — utilisée seulement quand la session Couronne a s.rc_on = 1 (sinon rien ne change) =====
 function rcBrouillon() { var o = $('rcOpt'); return o && o.checked && $('genre').value === 'simple' && methDe($('meth').value) === 'C' ? 1 : 0; }
 function remplirRC() { var jt = jetonBrouillon(), k = jt / 100; $('pObj').value = fJ(RC_OBJ, k); $('pCave').value = fJ(RC_CAVE, k); }
 function erreurRC(o, c, k) { k = k || 1; var e = {};
@@ -5291,8 +5325,8 @@ function erreurRC(o, c, k) { k = k || 1; var e = {};
 function rcPct(x) { return (100 * x).toFixed(1).replace('.', ','); }
 function rcE2(x) { return (x < 0 ? '−' : '+') + Math.abs(x).toFixed(2).replace('.', ','); }
 function noteRC() { var m = mcRCDe(70), u = mcRCDe(0);
-  return nomRC + ' (option v29, fiche du 22/11) : Phase 1 sur les chances simples (0 € sans doublet), Phase 2 dès +12 € : 2 tirs au plus sur un pivot de la colonne centrale. Stop-win +35 € ou pivot plein ; stop-loss −45 €, sans recharge. ' +
-    (m ? 'Simulation (1 000 000 de sessions, 70 coups au plus) : stop-win +35 € ' + rcPct(m.Pobj) + ' %, pivot ' + rcPct(m.Ppiv) + ' %, stop-loss −45 € ' + rcPct(m.Psl) + ' %, autres fins (70 coups) ' + rcPct(m.Pcoups) + ' %, moyenne ' + rcE2(m.E) + ' €' + (u ? ' (sans limite de coups : stop-loss ' + rcPct(u.Psl) + ' %, moyenne ' + rcE2(u.E) + ' €)' : '') + '. ' : '') + RAPPEL_RC; }
+  return nomRC + ' ' + RC_VER + ' (fiche du 23/11) : Phase 1 sur les chances simples ; sans doublet, Radar actif 1 € (« Sniper » plein sur le dernier numéro central si bilan ≥ 0, « Surf » sur l\'alternance si bilan < 0) ; Phase 2 systématique dès +8 € : Tir 1 puis Tir 2 sur un pivot de la colonne centrale (5 à 32). Stop-win +35 € ou pivot plein ; stop-loss −45 €, sans recharge. ' +
+    (m ? 'Simulation (1 000 000 de sessions, 70 coups au plus) : stop-win +35 € ' + rcPct(m.Pobj) + ' %, pivot Couronne ' + rcPct(m.PpivC) + ' %, pivot Sniper ' + rcPct(m.PpivS) + ' %, stop-loss −45 € ' + rcPct(m.Psl) + ' %, autres fins (70 coups) ' + rcPct(m.Pcoups) + ' %, moyenne ' + rcE2(m.E) + ' €' + (u ? ' (sans limite de coups : stop-loss ' + rcPct(u.Psl) + ' %, moyenne ' + rcE2(u.E) + ' €)' : '') + '. ' : '') + RAPPEL_RC; }
 function majRC(lock) {
   var o = $('rcOpt'); if (!o) return; metDesactive(o, lock);
   if (!rcBrouillon()) return;
@@ -5301,55 +5335,55 @@ function majRC(lock) {
 }
 function statsRCHtml(st) {
   if (!st) return '<div class="mini">Chiffres de simulation indisponibles.</div>';
-  return '<table><tr><td>Stop-win +35 € (Phase 1 + bords)</td><td>' + pc(st.Pobj) + '</td></tr><tr><td>Pivot plein tombé (stop-win immédiat)</td><td>' + pc(st.Ppiv) + '</td></tr><tr><td>Stop-loss −45 €</td><td>' + pc(st.Psl) + '</td></tr>' +
+  return '<table><tr><td>Stop-win +35 € (Phase 1 + bords)</td><td>' + pc(st.Pobj) + '</td></tr><tr><td>Pivot de la Couronne tombé (stop-win immédiat)</td><td>' + pc(st.PpivC) + '</td></tr><tr><td>Sniper touché (stop-win immédiat)</td><td>' + pc(st.PpivS) + '</td></tr><tr><td>Stop-loss −45 €</td><td>' + pc(st.Psl) + '</td></tr>' +
     (st.max ? '<tr><td>Autres fins (' + st.max + ' coups joués)</td><td>' + pc(st.Pcoups) + '</td></tr>' : '') +
-    '<tr><td>Résultat moyen par session</td><td>' + eur2(st.E) + '</td></tr><tr><td>Total misé par session (moyenne)</td><td>' + fs2(Math.round(st.mis * 10) / 10) + ' €</td></tr>' +
+    '<tr><td>Phase 2 atteinte (au moins un Tir 1)</td><td>' + pc(st.Pphase2) + '</td></tr><tr><td>Résultat moyen par session</td><td>' + eur2(st.E) + '</td></tr><tr><td>Total misé par session (moyenne)</td><td>' + fs2(Math.round(st.mis * 10) / 10) + ' €</td></tr>' +
     '<tr><td>Perte moyenne / total misé</td><td>' + (100 * st.E / st.mis).toFixed(2).replace('.', ',').replace('-', '−') + ' %</td></tr><tr><td>Coups par session (moyenne)</td><td>' + fs2(Math.round(st.coups * 10) / 10) + '</td></tr></table>' +
     '<div class="mini" style="margin-top:6px">Monte-Carlo : ' + st.n.toLocaleString('fr-FR') + ' sessions simulées avec les règles de la fiche (graine fixe' + (st.max ? ', ' + st.max + ' coups au plus' : ', sans limite de coups') + ', roulette à un zéro, La Partage).</div>';
 }
 function tirsRCHtml() {
   var T = tableRC();
   return '<table class="nivtab">' + T.map(function (t) { return '<tr><td>Tir ' + t.tir + (t.tir === 1 ? ' (croix : pivot + 4 chevaux)' : ' (couronne : croix + 4 carrés)') + ' · ' + t.mise + ' € · ' + t.couverts + ' n°</td><td>pivot ' + eur(t.pivot) + ' · bord ' + eur(t.bord) + (t.angle !== null ? ' · angle ' + eur(t.angle).replace('+0', '0') : '') + ' · rien ' + eur(t.rien) + '</td></tr>'; }).join('') + '</table>' +
-    '<div class="mini">Vrais gains nets du coup, calculés par l\'appli (plein payé 35, cheval 17, carré 8). La fiche annonçait +102 / +12 (Tir 1) et +129 / +21 / −6 (Tir 2).</div>';
+    '<div class="mini">Vrais gains nets du coup, calculés par l\'appli (plein payé 35, cheval 17, carré 8). Mêmes chiffres que la fiche V2.0. Sur un angle au Tir 2 : 0, on encaisse et on revient en Phase 1.</div>';
 }
 var POINTS_RC = [
   ['Cave et arrêts', 'cave 300 € ; stop-win à +35 € de bilan ; pivot plein tombé = stop-win immédiat quel que soit le montant ; stop-loss −45 € (cave à 255 €) : fin de session, pas de recharge aujourd\'hui.'],
-  ['Phase 1 : observation', '0 € tant qu\'aucune des 3 paires (R/N, P/I, M/P) n\'a 2 sorties identiques consécutives (le zéro ne fait pas de doublet).'],
+  ['Phase 1 : Radar actif (sans doublet)', 'aucune des 3 paires (R/N, P/I, M/P) n\'a 2 sorties identiques consécutives (le zéro ne fait pas de doublet). Bilan ≥ 0 € : « Sniper », 1 € plein sur le dernier numéro de la colonne centrale (2 à 35) sorti dans les 5 derniers coups (sinon 0 €) ; touché (+35 €) : stop-win immédiat. Bilan < 0 € : « Surf », 1 € sur la chance qui prolonge l\'alternance de la paire la plus alternée sur les 5 derniers coups (égalité : R/N, puis P/I, puis M/P) ; perdu ou doublet formé : palier 1 avec B = 2 € ; gagné : rien d\'autre ne change.'],
   ['Phase 1 : doublet', 'on mise la continuation (la chance qui vient de sortir 2 fois) ; plusieurs paires en doublet : celle qui a le moins alterné sur les 5 derniers coups (égalité : R/N, puis P/I, puis M/P).'],
   ['Base B', 'départ 2 € ; faux départ (perte au palier 1) : B + 1 €, maximum 5 € ; 3 faux départs de suite : B revient à 2 € et y reste jusqu\'au prochain gain.'],
   ['Paroli sécurisé', 'gain au palier 1 → Paroli sur la même chance. B = 2 : 2 → 4 → (2 € en réserve) 6 → 10, puis encaissement. B = 3 : 3 → 6 → (2 € en réserve) 10, puis encaissement. B = 4 ou 5 : B → 2B − 2 (2 € en poche), encaissement au 2e gain et B − 2 € (plancher 2). Paroli complet ou cassé : retour au palier 1, B inchangée (sauf B = 4/5 complet).'],
   ['Zéro', 'sur les chances simples, La Partage : la moitié de la mise est rendue ; palier, chance et B inchangés. Sur les tirs (numéros) : mise perdue.'],
-  ['Plafond « ce qu\'il manque »', 'jamais plus que ce qu\'il faut pour atteindre exactement +12 € (sous +12 €) ou +35 € (au-dessus) ; arrondi à l\'euro supérieur, au moins 1 €.'],
-  ['Phase 2 : pivot', 'dès que le bilan est ≥ +12 €, le prochain numéro de la colonne centrale entre 5 et 32 sorti sur un coup de Phase 1 devient le pivot (le 2 et le 35 sont ignorés). Un Paroli en cours est encaissé.'],
-  ['Tir 1 (croix, 5 €)', '1 € plein sur le pivot + 1 € sur chacun des 4 chevaux adjacents. Pivot : stop-win. Bord : encaisser, retour Phase 1. Raté : Tir 2 seulement si le bilan est encore ≥ +15 €, sinon retour Phase 1.'],
+  ['Plafond « ce qu\'il manque »', 'jamais plus que ce qu\'il faut pour atteindre exactement +8 € (sous +8 €) ou +35 € (au-dessus) ; arrondi à l\'euro supérieur, au moins 1 €.'],
+  ['Phase 2 : pivot', 'Phase 2 systématique : dès que le bilan est ≥ +8 € après un coup de Phase 1, le dernier numéro de la colonne centrale entre 5 et 32 sorti dans les 5 derniers coups devient le pivot (le 2 et le 35 ne servent pas de pivot à la Couronne) ; s\'il n\'y en a pas, on attend le prochain. Un Paroli en cours est encaissé.'],
+  ['Tir 1 (croix, 5 €)', '1 € plein sur le pivot + 1 € sur chacun des 4 chevaux adjacents. Pivot : stop-win. Bord : encaisser, retour Phase 1. Raté : Tir 2, toujours (V2.0).'],
   ['Tir 2 (couronne, 9 €)', 'la croix + 1 € sur chacun des 4 carrés du pivot. Pivot : stop-win. Bord : encaisser, retour Phase 1. Angle ou rien : retour Phase 1. Jamais de coups 3, 4 ou 5.'],
-  ['Nouvelle attaque', 'après un retour en Phase 1, dès que le bilan est ≥ +12 € et qu\'un nouveau numéro central sort.']
+  ['Nouvelle attaque', 'après un retour en Phase 1, dès que le bilan est ≥ +8 € après un coup de Phase 1 et qu\'un numéro central (5 à 32) est sorti dans les 5 derniers coups.']
 ];
 function regleRCHtml() {
-  return '<p><b>' + nomRC + '</b> (option v29 de La Couronne, fiche du 22/11 « Système hybride RadarCouronne » ; décochée par défaut ; v2.1 reste la version par défaut). Montants au jeton de 1 € : le jeton choisi multiplie tout.</p><table class="tab"><tr><th>Situation</th><th>Règle</th></tr>' +
+  return '<p><b>' + nomRC + ' ' + RC_VER + '</b> (option de La Couronne, v30, fiche du 23/11 « Système hybride Radar-Couronne (V2.0) » ; décochée par défaut ; v2.1 reste la version par défaut). Montants au jeton de 1 € : le jeton choisi multiplie tout.</p><table class="tab"><tr><th>Situation</th><th>Règle</th></tr>' +
     POINTS_RC.map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td>' + esc(r[1]) + '</td></tr>'; }).join('') + '</table>' + tirsRCHtml() + '<p class="mini">' + esc(RAPPEL_RC) + '</p>';
 }
 function dessinerFicheRC(p) {
   var st = mcRCDe(70), h = '<h2>Fiche conseil</h2><div><b>+' + p.obj + ' € sur ' + p.cave + ' € · ' + nomRC + '</b></div>';
-  h += '<h3>Phase 1 (chances simples, base 1 €)</h3><table class="nivtab"><tr><td>Sans doublet</td><td>observation 0 €</td></tr><tr><td>B = 2</td><td>2 → 4 → 6 → 10 €</td></tr><tr><td>B = 3</td><td>3 → 6 → 10 €</td></tr><tr><td>B = 4 / 5</td><td>4 → 6 € / 5 → 8 €</td></tr><tr><td>Faux départ</td><td>B + 1 € (max 5) ; 3 d\'affilée : B = 2 verrouillée</td></tr></table>';
-  h += '<h3>Phase 2 (dès +12 €, sur les gains)</h3>' + tirsRCHtml();
+  h += '<h3>Phase 1 (chances simples, base 1 €)</h3><table class="nivtab"><tr><td>Sans doublet, bilan ≥ 0</td><td>Sniper : 1 € plein (dernier n° central des 5 derniers coups)</td></tr><tr><td>Sans doublet, bilan < 0</td><td>Surf : 1 € sur l\'alternance</td></tr><tr><td>B = 2</td><td>2 → 4 → 6 → 10 €</td></tr><tr><td>B = 3</td><td>3 → 6 → 10 €</td></tr><tr><td>B = 4 / 5</td><td>4 → 6 € / 5 → 8 €</td></tr><tr><td>Faux départ</td><td>B + 1 € (max 5) ; 3 d\'affilée : B = 2 verrouillée</td></tr></table>';
+  h += '<h3>Phase 2 (systématique dès +8 €, sur les gains)</h3>' + tirsRCHtml();
   h += '<h3>Une session (simulation, 1 million de sessions)</h3>' + statsRCHtml(st);
   h += '<div class="conseil">' + esc(RAPPEL_RC) + '</div>';
   $('fiche').innerHTML = h; reancrer();
 }
 function regleRCValHtml(s) {
-  return '<p><b>' + nomRC + ' — appliquée à cette session.</b> ' + (s.rc_ph ? 'Phase 2, Tir ' + s.rc_ph + ' sur le pivot ' + s.rc_pv : 'Phase 1, B = ' + s.rc_B + ' €' + (s.rc_lk ? ' (verrouillée)' : '')) + ' · objectif +' + s.obj + ' € · stop-loss −' + RC_SL + ' € · cave ' + s.cave + ' €.</p>';
+  return '<p><b>' + nomRC + ' ' + RC_VER + ' — appliquée à cette session.</b> ' + (s.rc_ph ? 'Phase 2, Tir ' + s.rc_ph + ' sur le pivot ' + s.rc_pv : 'Phase 1, B = ' + s.rc_B + ' €' + (s.rc_lk ? ' (verrouillée)' : '')) + ' · objectif +' + s.obj + ' € · stop-loss −' + RC_SL + ' € · cave ' + s.cave + ' €.</p>';
 }
 function rendreAvecRC(s) {
   var c = conseil(s), el = $('conseil'), d = lignes[lignes.length - 1], st = mcRCDe(70);
   el.className = 'carte conseil' + (s.fin === 'OBJECTIF' ? ' stop' : (s.fin ? ' out' : ''));
   var rap = '<div class="etat">' + esc(RAPPEL_RC) + '</div>';
-  if (s.fin === 'OBJECTIF') el.innerHTML = '<div class="mise">STOP ✔</div><div class="etat" style="font-size:18px;font-weight:700">' + (s.rc_piv ? 'Pivot plein tombé : stop-win immédiat' : 'Stop-win +' + s.obj + ' € atteint') + ' — bilan ' + eur(s.bilan) + ' au coup ' + s.coups + '</div><div class="etat">Encaisse et quitte la table (' + nomRC + ').</div>' + rap;
+  if (s.fin === 'OBJECTIF') el.innerHTML = '<div class="mise">STOP ✔</div><div class="etat" style="font-size:18px;font-weight:700">' + (s.rc_piv === 2 ? 'Sniper touché : stop-win immédiat' : s.rc_piv ? 'Pivot plein tombé : stop-win immédiat' : 'Stop-win +' + s.obj + ' € atteint') + ' — bilan ' + eur(s.bilan) + ' au coup ' + s.coups + '</div><div class="etat">Encaisse et quitte la table (' + nomRC + ').</div>' + rap;
   else if (s.fin === 'STOP_LOSS') el.innerHTML = '<div class="mise">STOP</div><div class="etat" style="font-size:18px;font-weight:700">Stop-loss −' + RC_SL + ' € — bilan ' + eur(s.bilan) + '</div><div class="etat">Fin de session : pas de recharge aujourd\'hui (' + nomRC + ').</div>' + rap;
   else if (s.fin) el.innerHTML = '<div class="mise">FIN</div><div class="etat" style="font-size:18px;font-weight:700">' + esc(injouableRC(s.obj, s.cave) || 'Session terminée') + '</div>' + rap;
-  else el.innerHTML = '<div class="lab">' + nomRC + ' · ' + (s.coups ? 'Coup n° ' + (s.coups + 1) : 'Premier coup') + ' · objectif +' + s.obj + ' € · stop-loss −' + RC_SL + ' € · cave ' + s.cave + ' €</div>' +
+  else el.innerHTML = '<div class="lab">' + nomRC + ' ' + RC_VER + ' · ' + (s.coups ? 'Coup n° ' + (s.coups + 1) : 'Premier coup') + ' · objectif +' + s.obj + ' € · stop-loss −' + RC_SL + ' € · cave ' + s.cave + ' €</div>' +
     (c.mise ? '<div class="mise">Mise : ' + c.mise + ' € <span style="font-size:24px">sur</span> <span class="ch ch-autre">' + esc(c.chance) + '</span></div>' : '<div class="mise">Observation : 0 €</div>') +
-    '<div class="etat">' + esc(c.etat) + '</div>' + (c.mise ? misesListeHtml(c) : '') + (c.k === 't1' || c.k === 't2' ? '<div class="note">Numéros couverts : ' + c.couverts.join(', ') + ' (' + c.couverts.length + '/37)</div>' : '') + '<div class="note" style="opacity:.9">' + esc(RAPPEL_RC) + '</div>';
+    '<div class="etat">' + esc(c.etat) + '</div>' + (c.mise ? misesListeHtml(c) : '') + (c.k === 't1' || c.k === 't2' || c.k === 'sniper' ? '<div class="note">Numéros couverts : ' + c.couverts.join(', ') + ' (' + c.couverts.length + '/37)</div>' : '') + '<div class="note" style="opacity:.9">' + esc(RAPPEL_RC) + '</div>';
   var lo = -RC_SL, hi = s.obj, pos = function (v) { return (100 * (v - lo) / (hi - lo)).toFixed(2) + '%'; };
   var j = ''; [[lo, '−' + fJS(RC_SL)], [0, '0'], [RC_SEUIL, '+' + fJS(RC_SEUIL)], [hi, '+' + fJS(s.obj)]].forEach(function (m) { j += '<div class="tk" style="left:' + pos(m[0]) + '"></div><div class="mk" style="left:' + pos(m[0]) + '">' + m[1] + '</div>'; });
   var bv = Math.max(lo, Math.min(hi, s.bilan));
@@ -5358,8 +5392,8 @@ function rendreAvecRC(s) {
   $('tuiles').innerHTML = '<div><b>' + eur(s.bilan) + '</b><span>Bilan</span></div><div><b>' + eur(s.cave + s.bilan, false) + '</b><span>Tapis (reste en cave)</span></div><div><b>' + (s.fin ? '—' : s.rc_ph ? 'Phase 2 · Tir ' + s.rc_ph : 'Phase 1') + '</b><span>Phase</span></div>' +
     '<div><b>' + s.rc_B + ' €' + (s.rc_lk ? ' 🔒' : '') + '</b><span>Base B</span></div><div><b>' + (s.rc_ph ? s.rc_pv : '—') + '</b><span>Pivot</span></div><div><b>' + s.rc_fd + ' / 3</b><span>Faux départs d\'affilée</span></div>';
   $('explic').innerHTML = '<h2>Ce que dit la méthode</h2>' + (d ? '<div style="font-size:13.5px">Coup ' + d.n + ' : n° <b>' + d.num + '</b> → <b class="' + (d.gain > 0 ? 'g' : 'p') + '">' + d.res + '</b> (' + eur(d.gain) + ' sur ' + d.mise + ' €)</div><ul class="regles">' + d.regles.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('') + '</ul>'
-    : '<div style="font-size:13px">' + nomRC + ' : Phase 1 sur les chances simples (on n\'entre qu\'après un doublet), Phase 2 dès +12 € : Tir 1 en croix puis, si le bilan reste ≥ +15 €, Tir 2 en couronne. Touche chaque numéro sorti.</div>');
-  var pc1 = c.couverts ? c.couverts.length : 0, simple = c.k === 'p1' || c.k === 'par';
+    : '<div style="font-size:13px">' + nomRC + ' ' + RC_VER + ' : Phase 1 sur les chances simples (palier 1 après un doublet, sinon Radar actif 1 € : Sniper ou Surf), Phase 2 systématique dès +8 € : Tir 1 en croix puis, s\'il est raté, Tir 2 en couronne. Touche chaque numéro sorti.</div>');
+  var pc1 = c.couverts ? c.couverts.length : 0, simple = c.k === 'p1' || c.k === 'par' || c.k === 'surf';
   $('proba').innerHTML = '<h2>Tes chances (simulation, 1 million de sessions)</h2>' + (!s.fin && c.mise ? '<table><tr><td>Ce coup : gagné</td><td>' + pc1 + '/37 = ' + pc(pc1 / 37) + '</td></tr><tr><td>Ce coup : ' + (simple ? 'zéro (la moitié rendue)' : 'rien (zéro compris, pas de La Partage)') + '</td><td>' + (simple ? '1/37 = ' + pc(1 / 37) : (37 - pc1) + '/37 = ' + pc((37 - pc1) / 37)) + '</td></tr></table>' : '') +
     '<div class="mini" style="margin:6px 0">Une session neuve (+' + s.obj + ' € / ' + s.cave + ' €) :</div>' + statsRCHtml(st);
   $('botCorps').innerHTML = '<div class="botpq"><b>' + nomRC + ' :</b> le Conseil du bot ne s\'applique pas à cette option — les mises sont fixées par la fiche (Phase 1, Phase 2, stop-win, stop-loss). Suis la carte « Ta prochaine mise ».</div><div class="botrap">' + esc(RAPPEL_RC) + '</div>';
@@ -5368,7 +5402,7 @@ function rendreAvecRC(s) {
   else $('nsess').innerHTML = '<h2>Sur plusieurs sessions</h2><div class="mini">Chiffres indisponibles.</div>';
   var ng = 0, np = 0, no = 0, mise = 0, max = 0, bas = 0;
   lignes.forEach(function (l) { if (!l.mise) no++; else if (l.gain > 0) ng++; else np++; mise += l.mise; max = Math.max(max, l.mise); bas = Math.min(bas, l.bilan); });
-  $('stats').innerHTML = '<div><b>' + lignes.length + '</b><span>Coups</span></div><div><b><span class="g">' + ng + '</span> / <span class="p">' + np + '</span> / ' + no + '</b><span>Gains / pertes / observations</span></div><div><b>' + eur(mise, false) + '</b><span>Total misé</span></div>' +
+  $('stats').innerHTML = '<div><b>' + lignes.length + '</b><span>Coups</span></div><div><b><span class="g">' + ng + '</span> / <span class="p">' + np + '</span> / ' + no + '</b><span>Gains / pertes / sans mise</span></div><div><b>' + eur(mise, false) + '</b><span>Total misé</span></div>' +
     '<div><b>' + eur(bas) + '</b><span>Plus bas atteint</span></div><div><b>' + (max ? max + ' €' : '—') + '</b><span>Plus grosse mise</span></div><div><b>' + (s.rc_na || 0) + '</b><span>Attaques Phase 2</span></div>';
   majVerrou(s); $('regleMulti').innerHTML = regleMulti(s);
   rendreFiche();
@@ -5381,7 +5415,7 @@ function rendreAvecRC(s) {
   var hh = ''; for (var k = lignes.length - 1; k >= 0; k--) { var l = lignes[k], cl = l.gain > 0 ? 'g' : (l.gain === 0 ? 'zz' : 'p');
     hh += '<div class="l"><div class="t"><span>#' + l.n + ' · n° <b>' + l.num + '</b> · ' + l.mise + ' € ' + esc(l.chance) + '</span><span class="' + cl + '">' + l.res + ' ' + eur(l.gain) + '</span><span>' + eur(l.bilan) + '</span></div><div class="r2">' + esc(l.etatAvant) + ' → ' + (typeof l.suivante === 'number' ? 'mise suivante ' + l.suivante + ' €' : (l.suivante === 'OBJECTIF' ? 'STOP' : l.suivante === 'STOP_LOSS' ? 'stop-loss' : 'fin')) + ' · ' + esc(l.regles.join(' · ')) + '</div></div>'; }
   $('hist').innerHTML = hh || '<div class="mini">Les coups s\'afficheront ici.</div>';
-  var bs = document.querySelectorAll('.tapis button'), cv = !s.fin && (c.k === 't1' || c.k === 't2') ? c.couverts : [];
+  var bs = document.querySelectorAll('.tapis button'), cv = !s.fin && (c.k === 't1' || c.k === 't2' || c.k === 'sniper') ? c.couverts : [];
   for (var n = 0; n < bs.length; n++) { bs[n].disabled = !!s.fin; bs[n].classList.toggle('cib', cv.indexOf(Number(bs[n].textContent)) >= 0); }
   $('annuler').disabled = pile.length < 2; reancrer();
 }
